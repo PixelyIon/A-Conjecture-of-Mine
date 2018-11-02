@@ -4,3 +4,5 @@ version = "0.1.0"
 authors = ["Gark Garcia <37553739+GarkGarcia@users.noreply.github.com>"]
 
 [dependencies]
+winapi = "0.2.8"
+kernel32-sys = "0.2.1"
