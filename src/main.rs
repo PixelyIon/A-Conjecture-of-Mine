@@ -57,20 +57,20 @@ fn get_counter_expl(max : i32) -> Vec<[i32; 2]> {
     let mut load_bar = 0f32;
 
     for a in 0..max {
+
+        // Print the progress on the screen
+        let new_load_bar = ((a as f32) * 100f32 / (max as f32)).ceil();
+        if new_load_bar != load_bar {
+            load_bar = new_load_bar;
+            clear_console();
+            println!("LOADING: {}%", new_load_bar);
+        }
+
         for b in a..max {
             let difference : i32 = sum_digits(a + b) - sum_digits(a) - sum_digits(b);
 
             if !is_multiple_of_nine(difference) {
                 counter_examples.push([a, b]);
-            }
-
-            // Print the progress on the screen
-            let new_load_bar = ((a as f32) * 100f32 / (max as f32)).ceil();
-
-            if new_load_bar != load_bar {
-                load_bar = new_load_bar;
-                clear_console();
-                println!("LOADING: {}%", new_load_bar);
             }
         }
     }
