@@ -54,12 +54,12 @@ fn main() {
 // Test the conjecture for all values up to max and return the counterexamples
 fn get_counter_expl(max : i32) -> Vec<[i32; 2]> {
     let mut counter_examples : Vec<[i32; 2]> = Vec::new();
-    let mut load_bar = 0f32;
+    let mut load_bar = 0;
 
     for a in 0..max {
 
         // Print the progress on the screen
-        let new_load_bar = ((a as f32) * 100f32 / (max as f32)).ceil();
+        let new_load_bar = a * 100 / max;
         if new_load_bar != load_bar {
             load_bar = new_load_bar;
             clear_console();
