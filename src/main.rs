@@ -3,28 +3,28 @@
 // Let S: N -> N be the sum of the digits of a positive integer.
 // For all A and B in N, S(A + B) = S(A) + S(B) - 9k, where k is an interger.
 
-extern crate kernel32;
-extern crate winapi;
+extern crate crossterm;
 
-use winapi::HANDLE;
-use winapi::wincon::CONSOLE_SCREEN_BUFFER_INFO;
-use winapi::wincon::COORD;
-use winapi::wincon::SMALL_RECT;
-use winapi::WORD;
-use winapi::DWORD;
 use std::io::stdin;
-
-static mut CONSOLE_HANDLE: Option<HANDLE> = None;
+use std::sync::mpsc::{Sender, Receiver};
+use std::sync::mpsc;
+use std::thread;
+use std::ops::Range;
+use crossterm::terminal::{terminal,ClearType};
+use crossterm::Screen;
 
 fn main() {
+    let screen = Screen::default();
+    let prompt = terminal(&screen);
+
     let mut user_input = String::new();
 
-    println!("  This program is a simple test for the following conjecture:
+    println!("This program is a simple test for the following conjecture:
     
-  Let S: N -> N be the sum of the digits of a positive integer.
-  For all A and B in N, S(A + B) = S(A) + S(B) - 9k, where k is an interger.
+Let S: N -> N be the sum of the digits of a positive integer.
+For all A and B in N, S(A + B) = S(A) + S(B) - 9k, where k is an interger.
     
-  What value would you like to test the conjecture for?");
+What value would you like to test the conjecture for?");
 
     // Listen for user input
     stdin().read_line(&mut user_input).expect("Did not enter a correct string");
@@ -32,18 +32,20 @@ fn main() {
 
     // If the user input is a valid int
     if !input_parsing_result.is_err() {
+        println!("\nLOADING...");
+
         let max = input_parsing_result.unwrap().abs();
-        let counter_examples = get_counter_expl(max);
+        let counterexpls = get_all_countrexpls(max);
 
         // Print the results
-        clear_console();
-        if counter_examples.len() == 0 {
+        prompt.clear(ClearType::CurrentLine);
+        if counterexpls.len() == 0 {
             println!("The conjecture is proved for all natural numbers smaller or equals to {}!", max);
         } else {
             println!("The conjecture is disproved! Here are the counter examples:");
 
-            for pair in counter_examples {
-                println!("{} and {};", pair[0], pair[1]);
+            for pair in counterexpls {
+                println!("{} and {}", pair[0], pair[1]);
             }
         }
     } else {
@@ -51,121 +53,79 @@ fn main() {
     }
 }
 
-// Test the conjecture for all values up to max and return the counterexamples
-fn get_counter_expl(max : i32) -> Vec<[i32; 2]> {
-    let mut counter_examples : Vec<[i32; 2]> = Vec::new();
-    let mut load_bar = 0;
+fn get_all_countrexpls(max: i32) -> Vec<[i32; 2]> {
 
-    for a in 0..max {
+    if max > 1000 {
+        
+        // Thread related variables
+        let (coutexpl_sender, coutexpl_reciever): (Sender<Vec<[i32; 2]>>, Receiver<Vec<[i32; 2]>>) = mpsc::channel();
+        let mut child_threads = Vec::new();
+        let n_threads = 10;
+        let range_lenght = ((max as f32) / n_threads as f32).ceil() as i32;
 
-        // Print the progress on the screen
-        let new_load_bar = a * 100 / max;
-        if new_load_bar != load_bar {
-            load_bar = new_load_bar;
-            clear_console();
-            println!("LOADING: {}%", new_load_bar);
+        // Conjecture related variables
+        let mut counterexpls: Vec<[i32; 2]> = Vec::new();
+
+        for i in 0..n_threads {
+            let thread_countr_sd = coutexpl_sender.clone();
+            let end = std::cmp::min(i * (range_lenght + 1) + range_lenght, max);
+            let range = Range {start: i * (range_lenght + 1), end: end};
+
+            let child = thread::spawn(move || {
+                thread_countr_sd.send(get_range_countrexpls(range, max))
+                    .expect("The thread was unable to sent a message trought the channel");
+            });
+            child_threads.push(child);
         }
 
+        for _ in 0..n_threads {
+            counterexpls.append(&mut coutexpl_reciever.recv().unwrap());
+        }
+
+        for child in child_threads {
+            child.join().expect("Child thread panicked");
+        }
+
+        return counterexpls;
+
+    } else {
+        return get_range_countrexpls(0..max, max);
+    }
+}
+
+fn get_range_countrexpls(range: Range<i32>, max: i32) -> Vec<[i32; 2]> {
+    let mut counterexpls = Vec::new();
+
+    for a in range {
         for b in a..max {
-            let difference : i32 = sum_digits(a + b) - sum_digits(a) - sum_digits(b);
+            let difference: i32 = sum_digits(a + b) - sum_digits(a) - sum_digits(b);
 
             if !is_multiple_of_nine(difference) {
-                counter_examples.push([a, b]);
+                counterexpls.push([a, b]);
             }
         }
     }
 
-    return counter_examples;
+    return counterexpls;
 }
 
-fn is_multiple_of_nine(n : i32) -> bool {
+fn is_multiple_of_nine(n: i32) -> bool {
     let n_float = n as f32;
 
     return (n_float/9f32) % 1f32 == 0f32;
 }
 
-fn get_digits(n : i32) -> Vec<u32> {
+fn get_digits(n: i32) -> Vec<u32> {
     return n.to_string().chars().map(|d| d.to_digit(10).unwrap()).collect();
 }
 
-fn sum_digits(n : i32) -> i32 {
-    let mut sum : i32 = 0i32;
+fn sum_digits(n: i32) -> i32 {
+    let mut sum = 0;
 
     for d in get_digits(n) {
-        let d_ = d as i32;
-        sum += d_;
+        let _d = d as i32;
+        sum += _d;
     }
 
     return sum;
-}
-
-
-// Console releted code:
-
-fn get_output_handle() -> HANDLE {
-    unsafe {
-        if let Some(handle) = CONSOLE_HANDLE {
-            return handle;
-        } else {
-            let handle = kernel32::GetStdHandle(winapi::STD_OUTPUT_HANDLE);
-            CONSOLE_HANDLE = Some(handle);
-            return handle;
-        }
-    }
-}
-
-fn get_buffer_info() -> winapi::CONSOLE_SCREEN_BUFFER_INFO {
-    let handle = get_output_handle();
-    if handle == winapi::INVALID_HANDLE_VALUE {
-        panic!("NoConsole")
-    }
-    let mut buffer = CONSOLE_SCREEN_BUFFER_INFO {
-        dwSize: COORD { X: 0, Y: 0 },
-        dwCursorPosition: COORD { X: 0, Y: 0 },
-        wAttributes: 0 as WORD,
-        srWindow: SMALL_RECT {
-            Left: 0,
-            Top: 0,
-            Right: 0,
-            Bottom: 0,
-        },
-        dwMaximumWindowSize: COORD { X: 0, Y: 0 },
-    };
-    unsafe {
-        kernel32::GetConsoleScreenBufferInfo(handle, &mut buffer);
-    }
-    buffer
-}
-
-fn clear_console() {
-    let handle = get_output_handle();
-    if handle == winapi::INVALID_HANDLE_VALUE {
-        panic!("NoConsole")
-    }
-
-    let screen_buffer = get_buffer_info();
-    let console_size: DWORD = screen_buffer.dwSize.X as u32 * screen_buffer.dwSize.Y as u32;
-    let coord_screen = COORD { X: 0, Y: 0 };
-
-    let mut amount_chart_written: DWORD = 0;
-    unsafe {
-        kernel32::FillConsoleOutputCharacterW(
-            handle,
-            32 as winapi::WCHAR,
-            console_size,
-            coord_screen,
-            &mut amount_chart_written,
-        );
-    }
-    set_cursor_possition(0, 0);
-}
-
-fn set_cursor_possition(y: i16, x: i16) {
-    let handle = get_output_handle();
-    if handle == winapi::INVALID_HANDLE_VALUE {
-        panic!("NoConsole")
-    }
-    unsafe {
-        kernel32::SetConsoleCursorPosition(handle, COORD { X: x, Y: y });
-    }
 }
