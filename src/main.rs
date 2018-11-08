@@ -5,62 +5,71 @@
 
 extern crate crossterm;
 
-use std::io::stdin;
+use std::io::{stdin, stdout, prelude::*};
 use std::sync::mpsc::{Sender, Receiver};
 use std::sync::mpsc;
 use std::thread;
 use std::ops::Range;
+use std::env;
+use std::process::Command;
 use crossterm::terminal::{terminal,ClearType};
 use crossterm::Screen;
 
 fn main() {
+    let args: Vec<String> = env::args().collect();
     let screen = Screen::default();
     let prompt = terminal(&screen);
 
-    let mut user_input = String::new();
+    // Assign the correct number of threads to run the application with
+    // The default is 10
+    let n_threads = if args.len() == 0 { 10 } else {
+         match args[0].trim().parse::<i32>() {
+             Ok(n) => n,
+             Err(_) => 10
+         }
+    };
 
     println!("This program is a simple test for the following conjecture:
     
 Let S: N -> N be the sum of the digits of a positive integer.
-For all A and B in N, S(A + B) = S(A) + S(B) - 9k, where k is an interger.
-    
-What value would you like to test the conjecture for?");
+For all A and B in N, S(A + B) = S(A) + S(B) - 9k, where k is an interger.");
 
     // Listen for user input
-    stdin().read_line(&mut user_input).expect("Did not enter a correct string");
-    let input_parsing_result = user_input.trim().parse::<i32>();
+    let user_input = ask("\nWhat value would you like to test the conjecture for? ".to_owned());
 
-    // If the user input is a valid int
-    if !input_parsing_result.is_err() {
-        println!("\nLOADING...");
+    match user_input.trim().parse::<i32>() {
+        Ok(max) => {
+            println!("\nLOADING...");
+            let counterexpls = get_all_countrexpls(max, n_threads);
 
-        let max = input_parsing_result.unwrap().abs();
-        let counterexpls = get_all_countrexpls(max);
+            // Print the results
+            prompt.clear(ClearType::All);
+            println!("LOADED... 100%\n");
+            if counterexpls.len() == 0 {
+                println!("The conjecture is proved for all natural numbers smaller or equals to {}!\n", max);
+            } else {
+                println!("The conjecture is disproved! Here are the counter examples:");
 
-        // Print the results
-        prompt.clear(ClearType::CurrentLine);
-        if counterexpls.len() == 0 {
-            println!("The conjecture is proved for all natural numbers smaller or equals to {}!", max);
-        } else {
-            println!("The conjecture is disproved! Here are the counter examples:");
+                for pair in counterexpls {
+                    println!("{} and {}", pair[0], pair[1]);
+                }
 
-            for pair in counterexpls {
-                println!("{} and {}", pair[0], pair[1]);
+                println!("");
             }
-        }
-    } else {
-        println!("'{}' is not an interger!", user_input.trim());
+
+            pause_prompt();
+        }, 
+        Err(_) => println!("'{}' is not an interger!", user_input.trim())
     }
 }
 
-fn get_all_countrexpls(max: i32) -> Vec<[i32; 2]> {
+fn get_all_countrexpls(max: i32, n_threads: i32) -> Vec<[i32; 2]> {
 
     if max > 1000 {
-        
+
         // Thread related variables
         let (coutexpl_sender, coutexpl_reciever): (Sender<Vec<[i32; 2]>>, Receiver<Vec<[i32; 2]>>) = mpsc::channel();
         let mut child_threads = Vec::new();
-        let n_threads = 10;
         let range_lenght = ((max as f32) / n_threads as f32).ceil() as i32;
 
         // Conjecture related variables
@@ -128,4 +137,19 @@ fn sum_digits(n: i32) -> i32 {
     }
 
     return sum;
+}
+
+fn ask(message: String) -> String {
+    // Print the question
+    write!(stdout(), "{}", message).unwrap();
+    stdout().flush().unwrap();
+
+    // Return the responce
+    let mut response = String::new();
+    stdin().read_line(&mut response).unwrap();
+    return response;
+}
+
+fn pause_prompt() {
+    let _ = Command::new("cmd.exe").arg("/c").arg("pause").status();
 }

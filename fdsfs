@@ -1,0 +1,29 @@
+[33mcommit fbd0555b91f701ea72f6027d4d7d7a1c36540ffd[m[33m ([m[1;36mHEAD -> [m[1;32mmaster[m[33m)[m
+Author: Gark Garcia <37553739+GarkGarcia@users.noreply.github.com>
+Date:   Sat Nov 3 16:29:00 2018 -0300
+
+    Implemented multi-threading functionality.
+
+[33mcommit adfd52d53c6f4a6b1e0a0dd1cbf5b06f0afdf470[m
+Author: Gark Garcia <37553739+GarkGarcia@users.noreply.github.com>
+Date:   Fri Nov 2 19:19:53 2018 -0300
+
+    Cleaned unecessary type conversions.
+
+[33mcommit 40b7cae777a49cbc6d369b6a003c4324a0b36cd0[m
+Author: Gark Garcia <37553739+GarkGarcia@users.noreply.github.com>
+Date:   Fri Nov 2 18:42:43 2018 -0300
+
+    Optimized the progress annotation functionality.
+
+[33mcommit 836609a62dd778474a80512994c36840b5b4ac23[m
+Author: Gark Garcia <37553739+GarkGarcia@users.noreply.github.com>
+Date:   Fri Nov 2 17:49:25 2018 -0300
+
+    Implemented console functionalities.
+
+[33mcommit 2b5b6fe1ae108a9c867ae307fe66d61c6fcf8c0a[m
+Author: Gark Garcia <37553739+GarkGarcia@users.noreply.github.com>
+Date:   Wed Oct 31 15:09:47 2018 -0300
+
+    Initial commit.
