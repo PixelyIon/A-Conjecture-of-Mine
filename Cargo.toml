@@ -5,3 +5,4 @@ authors = ["Gark Garcia <37553739+GarkGarcia@users.noreply.github.com>"]
 
 [dependencies]
 crossterm = "0.4.0"
+num_cpus = "1.0"
