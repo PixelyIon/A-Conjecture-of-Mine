@@ -1,5 +1,5 @@
 [package]
-name = "conjecture_tester"
+name = "digital_sum"
 version = "0.1.0"
 authors = ["Gark Garcia <37553739+GarkGarcia@users.noreply.github.com>"]
 

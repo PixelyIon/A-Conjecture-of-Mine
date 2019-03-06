@@ -1,0 +1,42 @@
+\documentclass{article}
+\usepackage{blindtext}
+\usepackage{amsfonts}
+\usepackage{mathtools}
+\pagenumbering{gobble}
+\usepackage[a4paper, total={6in, 9in}]{geometry}
+\usepackage[utf8]{inputenc}
+\title{Conjectura Mia}
+\author{Eli \& Thiago}
+\date{29 de dezembro de 2018}
+\begin{document}
+	\maketitle
+	\section*{\textit{Conjecture:}}
+		Let $S:\mathbb{N} \rightarrow \mathbb{N}$ be the sum of digits of a number $n \in \mathbb{N}$ --- represented in a \textit{base $\delta$ posicional system} --- and let $\nu \coloneqq \delta - 1$. We have:
+		
+		$$
+		\forall a, b \in \mathbb{N} : S_{a+b}=S_a + S_b + \nu k, k \in \mathbb{Z}
+		$$
+
+	\section*{\textit{Proof:}}
+		For all $a \in \mathbb{N}$:
+		$$
+		a = a_0 \cdot 10_\delta^0 + a_1 \cdot 10_\delta^1 + \dots + a_n \cdot 10_\delta^n \Rightarrow S_a = a_0 + a_1 + \dots + a_n
+		$$
+		\noindent Therefore:
+		$$
+		\begin{matrix}
+		a = a_0 \cdot (1 + \nu)^0 + \dots + a_n (1 + \nu)^n = a_0 \cdot (1 + \nu k_0) + \dots + a_n \cdot (1 + \nu k_n) \\ = a_0 + \dots + a_n + \nu k = S_a + \nu k, k \in \mathbb{Z}
+		\end{matrix}
+		$$
+		
+		\noindent Thus, for $c \coloneqq a + b$:
+		$$
+		\begin{cases}
+		& c = S_c + \nu k, k \in \mathbb{Z} \\
+		& a + b = (S_a + \nu k) + (S_b + \nu k') = S_a + S_b + \nu k''\;|\; k, k', k''\in \mathbb{Z}
+		\end{cases}
+		$$
+		
+		Therefore $c = a + b \Rightarrow S_c + \nu k = S_a + S_b + \nu k'\;|\; k, k'\in \mathbb{Z} \Rightarrow S_c = S_{a + b} = S_a + S_b + \nu k, k \in \mathbb{Z}$
+		\noindent \textbf{Q.E.D}
+\end{document}
