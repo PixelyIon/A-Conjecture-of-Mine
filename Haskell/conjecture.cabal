@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 3cf9a6d881ec7aedbc39501d43197ec9a1e4562b5d73a7f1f14420405cc67697
+-- hash: 8aa8667b3d4cd7fa12aca4ea4b2ddbfe34b6f53704ead53843307c5cd05e1045
 
 name:           conjecture
 version:        1.0.0.0
@@ -34,7 +34,7 @@ executable conjecture-exe
       Paths_conjecture
   hs-source-dirs:
       app
-  ghc-options: -threaded -rtsopts -with-rtsopts=-N
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N -O
   build-depends:
       base >=4.7 && <5
     , clock ==0.7.2

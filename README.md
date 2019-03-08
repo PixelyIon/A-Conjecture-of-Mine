@@ -11,8 +11,8 @@ The conjecture was [proved by exhaustion](https://en.wikipedia.org/wiki/Proof_by
 |Language      |Time   |Number of Threads Used|
 |--------------|-------|----------------------|
 |**Rust**      |22 _s_ |2                     |
-|**Haskell**   |60 _s_ |1                     |
-|**TypeScript**|198 _s_|1                     |
-|**JavaScript**|202 _s_|1                     |
+|**Haskell**   |48 _s_ |1                     |
+|**JavaScript**|197 _s_|1                     |
+|**TypeScript**|219 _s_|1                     |
 |**Ruby**      |273 _s_|1                     |
-|**Python**    |400 _s_|1                     |
+|**Python**    |522 _s_|1                     |

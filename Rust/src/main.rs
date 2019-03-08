@@ -8,7 +8,7 @@ extern crate num_cpus;
 extern crate rand;
 
 use std::{env, thread, time::Instant, sync::mpsc, sync::mpsc::{Sender, Receiver}};
-use crossterm::{terminal, input, ClearType};
+use crossterm::{terminal, input};
 use rand::prelude::*;
 
 fn main() {
@@ -18,14 +18,14 @@ fn main() {
     // Assign the correct number of threads to run the application with
     // The default is the number of cores in the machine
     let n_cores = num_cpus::get_physical();
-    let n_threads = if args.len() == 0 { n_cores } else {
-        match args[0].trim().parse::<usize>() {
+    let n_threads = if args.len() <= 1 { n_cores } else {
+        match args[1].trim().parse::<usize>() {
             Ok(n_arg) => std::cmp::min(n_arg, n_cores),
             Err(_) => n_cores
         }
     };
 
-    println!("This program is a simple test for the following conjecture:\n");
+    println!("\nThis program is a simple test for the following conjecture:\n");
     println!("Let S: N -> N be the sum of the digits of a positive integer.");
     println!("For all A and B in N, S(A + B) = S(A) + S(B) - 9k, where k is an integer.");
 
@@ -41,61 +41,67 @@ fn main() {
             let duration = start_time.elapsed();
 
             // Print the results
-            if let Err(err) = prompt.clear(ClearType::All) { panic!(err); }
-            println!("LOADED. . . 100% in {}s [{} threads]\n", duration.as_secs(), n_threads);
+            println!("LOADED. . . in {}s [{} Threads]\n", duration.as_secs(), n_threads);
             if counterexpls.len() == 0 {
                 println!("The conjecture is proved for all natural numbers smaller or equals to {}!", max);
             } else {
                 println!("The conjecture is disproved! Here are the counter examples:");
 
-                let mut counterexpls_str = String::new();
-
-                for pair in counterexpls {
-                    let ordered_pair = format!("({}, {})", pair[0], pair[1]);
-                    counterexpls_str = format!("{}, {}", counterexpls_str, ordered_pair);
-                }
-
-                println!("{}\n", counterexpls_str);
+                let counterexpls_str: Vec<String> = counterexpls.iter().map(|(a, b)| format!("({}, {})", a, b)).collect();
+                println!("{}\n", counterexpls_str.join(","));
             }
-
-            if let Err(err) = prompt.write("Press any key to continue. . . ") { panic!(err); }
-            let _ = input().read_char();
         }, 
         Err(_) => println!("'{}' is not a natural number!", user_input.trim())
     }
 }
 
-fn get_all_countrexpls(max: usize, n_threads: usize) -> Vec<[usize; 2]> {
+fn get_all_countrexpls(max: usize, n_threads: usize) -> Vec<(usize, usize)> {
     if max / n_threads > 0 && n_threads > 1 {
 
         // Thread related variables
-        let (coutexpl_sender, coutexpl_reciever): (Sender<Vec<[usize; 2]>>, Receiver<Vec<[usize; 2]>>) = mpsc::channel();
+        let (coutexpl_sender, coutexpl_reciever): (Sender<Vec<(usize, usize)>>, Receiver<Vec<(usize, usize)>>) = mpsc::channel();
         let mut child_threads = Vec::new();
         let range_lenght = max / n_threads;
         let mut range: Vec<usize> = (0..max).collect();
 
         // Conjecture related variables
-        let mut counterexpls: Vec<[usize; 2]> = Vec::new();
+        let mut counterexpls: Vec<(usize, usize)> = Vec::new();
 
-        // Shuffle the values in the range to get an even distribution of calculations across all threads
+        // Shuffle the values in the range to get an even distribution of
+        // calculations across all threads
         range.shuffle(&mut thread_rng());
 
-        for i in 1..n_threads {
-            let thread_countr_sd = coutexpl_sender.clone();
+        // Separate a specific slice of the range and assign it to the thread
+        let mut sub_ranges = Vec::new();
+        for i in 0..n_threads {
+            let start = i * range_lenght;
+            let end = start + range_lenght;
+            sub_ranges.push(range[(start as usize)..(end as usize)].to_vec());
+        }
 
-            // Separate a specific slice of the range and assign it to the thread
-            let start = (i - 1) * range_lenght;
-            let end = start + range_lenght - 1;
-            let thread_range = range[(start as usize)..(end as usize)].to_vec();
+        // Account for the fact that the maximum number tested may not be
+        // a multiple of the numbers of threads used for computations, hence
+        // the number of test performed by each thread may not be constant
+        if max % n_threads != 0 {
+            let mut rng = thread_rng();
+            let end = sub_ranges.len() - 1;
+            let mut remainders = range[(max - max % n_threads)..max].to_vec();
+
+            while let Some(val) = remainders.pop() {
+                sub_ranges[rng.gen_range(0, end)].push(val);
+            }
+        }
+
+        for i in 0..n_threads {
+            let thread_countr_sd = coutexpl_sender.clone();
+            let thread_range = sub_ranges.pop().unwrap();
 
             let child = thread::spawn(move || {
                 thread_countr_sd.send(get_range_countrexpls(thread_range, max))
                     .expect(&format!("Thread n°{} was unable to sent a message trought the channel", i));
             });
+            
             child_threads.push(child);
-        }
-
-        for _ in 1..n_threads {
             counterexpls.append(&mut coutexpl_reciever.recv().unwrap());
         }
 
@@ -109,15 +115,15 @@ fn get_all_countrexpls(max: usize, n_threads: usize) -> Vec<[usize; 2]> {
     }
 }
 
-fn get_range_countrexpls(range: Vec<usize>, max: usize) -> Vec<[usize; 2]> {
+fn get_range_countrexpls(range: Vec<usize>, max: usize) -> Vec<(usize, usize)> {
     let mut counterexpls = Vec::new();
 
     for a in range {
         for b in a..max {
             let difference = sum_digits(a + b) - sum_digits(a) - sum_digits(b);
 
-            if !is_multiple_of_nine(difference) {
-                counterexpls.push([a, b]);
+            if difference % 9 != 0 {
+                counterexpls.push((a, b));
             }
         }
     }
@@ -125,23 +131,17 @@ fn get_range_countrexpls(range: Vec<usize>, max: usize) -> Vec<[usize; 2]> {
     counterexpls
 }
 
-fn is_multiple_of_nine(n: isize) -> bool {
-    let floor = n / 9;
-    let neerest_mult = floor * 9;
+fn get_digits(n: usize) -> Vec<usize> {
+    if n == 0 {
+        vec![0]
+    } else {
+        let mut digs = vec![n % 10];
+        digs.append(&mut get_digits(n / 10));
 
-    n == neerest_mult
-}
-
-fn get_digits(n: usize) -> Vec<u32> {
-    n.to_string().chars().map(|d| d.to_digit(10).unwrap()).collect()
+        digs
+    }
 }
 
 fn sum_digits(n: usize) -> isize {
-    let mut sum = 0;
-
-    for d in get_digits(n) {
-        sum += d as isize;
-    }
-
-    sum
+    get_digits(n).iter().sum::<usize>() as isize
 }

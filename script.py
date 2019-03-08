@@ -6,32 +6,19 @@
 import sys
 import os
 import time
+from functools import reduce
 
 # A function for clearing the prompt
 clear = (lambda : os.system("cls")) if sys.platform.startswith("win") else (lambda : os.system("clear"))
 
-def is_multiple_of_nine(n):
-    return (n / 9) % 1 == 0
-
-def get_digits(n):
-    output = []
-
-    for ch in str(n):
-        output.append(int(ch))
-    
-    return output
+def digits(n):
+    return map(lambda c: int(c), list(str(n)))
 
 def sum_digits(n):
-    digits = get_digits(n)
-    output = 0
-
-    for d in digits:
-        output += d 
-    
-    return output
+    return reduce((lambda a, b: a + b), digits(n))
 
 def get_counterexmpls(n):
-    start_time = time.time()
+    start = time.time()
 
     load_bar = 0
     counterexmpls = []
@@ -42,18 +29,18 @@ def get_counterexmpls(n):
         if not round(a * 100 / n) == load_bar:
             load_bar = round(a * 100 / n)
             clear()
-            print("LOADING. . . %s%%" % load_bar)
+            print("LOADING. . . {}%".format(load_bar))
 
         for b in range(a, n + 1):
-            difference = sum_digits(a + b) - (sum_digits(a) + sum_digits(b))
+            diff = sum_digits(a + b) - (sum_digits(a) + sum_digits(b))
 
-            if not is_multiple_of_nine(difference):
+            if not diff % 9 == 0:
                 counterexmpls.append([a, b])
 
     # Mesure the elepsed time
-    elepsed_time = time.time() - start_time
+    elepsed = time.time() - start
     clear()
-    print("LOADED. . . %s%% in %ds\n" % (load_bar, elepsed_time))
+    print("LOADED. . . {}% in {}s\n".format(load_bar, elepsed))
     
     return counterexmpls    
 
@@ -71,14 +58,14 @@ try:
     counterexmpls = get_counterexmpls(maximum)
 
     if len(counterexmpls) == 0:
-        print("The conjecture is proved for all natural numbers smaller or equals to %s!" % maximum)
+        print("The conjecture is proved for all natural numbers smaller or equals to {}!".format(maximum))
     else:
         print("The conjecture is disproved! Here are the counter examples:")
 
         counterexmpls_str = ""
         for pair in counterexmpls:
-            counterexmpls_str = "%s, (%d, %f)" % (counterexmpls_str, pair[0], pair[1])
+            counterexmpls_str = "{}, ({}, {})".format(counterexmpls_str, pair[0], pair[1])
         
         print(counterexmpls_str)
 except:
-    print("'%s' isn't a valid number!" % user_input)
+    print("'{}' isn't a valid number!".format(user_input))

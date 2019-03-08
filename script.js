@@ -9,7 +9,7 @@ Array.prototype.none = function() {
     return this.length == 0;
 }
 
-Number.prototype.getDigits = function() {
+Number.prototype.digits = function() {
     return Array.from(String(this)).map(char => Number(char));
 }
 
@@ -18,13 +18,7 @@ Number.prototype.divides = function(n) {
 }
 
 Number.prototype.sumDigits = function() {
-    let sum = 0;
-    const digits = this.getDigits();
-
-    for (n of digits)
-        sum += n;
-
-    return sum;
+    return this.digits().reduce((a, b) => a + b);
 }
 
 function askQuestion(query) {
@@ -56,11 +50,8 @@ function getCounterExp(max) {
         }
 
         for (b = a; b <= max; b++) {
-
             // Check if the difference between S(a + b) and (S(a) + S(b)) is a multiple of 9
-            const conjectureHolds = (9).divides(
-                (a + b).sumDigits() - (a.sumDigits() + b.sumDigits())
-            );
+            const conjectureHolds = (9).divides((a + b).sumDigits() - (a.sumDigits() + b.sumDigits()));
             if (!conjectureHolds) counterexmpls.push([a, b]);
         }
     }

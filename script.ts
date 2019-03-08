@@ -5,108 +5,45 @@
 
 const readline = require('readline');
 
-class Int {
-    private val: number;
-
-    private constructor(n: number) {
-        this.val = n;
-    }
-
-    public add(n: Int): Int {
-        return new Int(this.val + n.val);
-    }
-
-    public subtrack(n: Int): Int {
-        return new Int(this.val - n.val);
-    }
-
-    public multiply(n: Int): Int {
-        return new Int(this.val * n.val);
-    }
-
-    public divide(n: Int): Int {
-        return new Int(Math.floor(this.val / n.val));
-    }
-
-    public incrementBy(n: Int) {
-        this.val += n.val;
-    }
-
-    public divides(n: Int): boolean {
-        return (n.val / this.val) % 1 == 0;
-    }
-
-    public getDigits(): Int[] {
-        return Array.from(this.val.toString()).map(char => Int.from(char));
-    }
-
-    public sumDigits(): Int {
-        let sum = Int.zero();
-        const digits = this.getDigits();
-
-        for (const n of digits)
-            sum.incrementBy(n);
-
-        return sum;
-    }
-
-    public toString(): string {
-        return `${this.val}`;
-    }
-
-    static from(a: number | string): Int {
-        return new Int(Math.round(Number(a)));
-    }
-
-    static getRange(a: Int, b: Int): Int[] {
-        const start = a.val, end = b.val, range: Int[] = [];
-
-        for (let i = start; i < end; i++) {
-            range.push(Int.from(i));
-        }
-
-        return range;
-    }
-
-    static zero(): Int {
-        return new Int(0);
-    }
-
-    static one(): Int {
-        return new Int(1);
-    }
+function digits(n: number) {
+    return Array.from(Math.round(Math.abs(n)).toString()).map(c => parseInt(c));
 }
 
-function askQuestion(query: string) {
+function sum(n: number) {
+    return digits(n).reduce((a, b) => a + b);
+}
+
+function test(a: number, b: number) {
+    return (sum(a + b) - (sum(a) + sum(b))) % 9 == 0;
+}
+
+function ask(question: string): Promise<string> {
     const rl = readline.createInterface({
         input: process.stdin,
         output: process.stdout,
     });
 
-    return new Promise((resolve: (value?: string | PromiseLike<string>) => void) => rl.question(query, (ans: string) => {
+    return new Promise(resolve => rl.question(question, (ans: string) => {
         rl.close();
         resolve(ans);
     }));
 }
 
-function getCounterExp(max: Int) {
-    const starTime = new Date(), counterexmpls: [Int, Int][] = [], nine = Int.from(9);
-    let loadBar = Int.zero();
+function getCounterExp(max: number) {
+    const starTime = new Date(), counterexmpls: [number, number][] = [];
+    let loadBar = 0;
 
-    for (const a of Int.getRange(Int.one(), max)) {
+    for (let a = 0; a <= max; a++) {
 
-        const newLoadBar = a.multiply(Int.from(100)).divide(max);
+        const newLoadBar = a * 100 / max;
         if (loadBar != newLoadBar) {
             console.clear();
             loadBar = newLoadBar;
             console.log(`LOADING. . . ${loadBar}%`);
         }
 
-        for (const b of Int.getRange(a, max)) {
-            // Check if the difference between S(a + b) and (S(a) + S(b)) is a multiple of 9
-            const conjectureHolds = nine.divides(a.add(b).sumDigits().subtrack(a.sumDigits().add(b.sumDigits())));
-            if (!conjectureHolds) counterexmpls.push([a, b]);
-        }
+        for (let b = a; b <= max; b++)
+            if (!test(a, b)) counterexmpls.push([a, b]);
     }
 
     const elepsedTime = (new Date().getTime() - starTime.getTime()) / 1000;
@@ -121,9 +58,9 @@ Let S: N -> N be the sum of the digits of a positive integer.
 For all A and B in N, S(A + B) = S(A) + S(B) - 9k, where k is an interger.
 `);
 
-askQuestion("What value would you like to test the conjecture for? ").then(ans => {
-    if (!isNaN(Number(ans))) {
-        const max = Int.from(ans), counterexmpls = getCounterExp(max);
+ask("What value would you like to test the conjecture for? ").then(ans => {
+    if (!isNaN(parseInt(ans))) {
+        const max = parseInt(ans), counterexmpls = getCounterExp(max);
 
         if (counterexmpls.length == 0)
             console.log(`The conjecture is proved for all natural numbers smaller or equals to ${max}!`);

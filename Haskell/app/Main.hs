@@ -3,44 +3,37 @@ module Main where
 import Numeric
 import Numeric.Natural
 import System.Clock
+import GHC.Conc
 
 main :: IO ()
 main = do
+    -- Configure the number of threads used by the program
+    setNumCapabilities 1
+
     putStrLn "\nThis program is a simple test for the following conjecture:\n"
     putStrLn "Let S: N -> N be the sum of the digits of a positive integer."
     putStrLn "For all A and B in N, S(A + B) = S(A) + S(B) - 9k, where k is an interger.\n"
     putStrLn "What value would you like to test the conjecture for?"
-
     maxStr <- getLine
-    let max = readDec maxStr
 
-    if (not $ null max) && ((snd $ head max ) == "")
-        then let counter = exceptions' 0 (fst $ head max) in do
+    case readDec maxStr :: [(Natural, String)] of
+        [(max, "")] -> do
             start <- getTime Monotonic
             putStrLn "\nLOADING. . ."
 
-            if null counter
-                then do 
+            case exceptions' 0 max of
+                [] -> do 
                     end <- getTime Monotonic
-                    putStrLn $ "LOADED in " ++ formatTime (end - start) ++ "s [1 Thread]"
-                    putStrLn $ "\nThe conjecture is proved for all natural numbers smaller or equals to " ++ show (fst $ head max) ++ "!"
-                    exit
-                else do
-                    putStrLn $ "\nThe conjecture is disproved! Here are the counter examples:\n" ++ (init $ tail $ show counter)
-                    exit
-        else do
-            putStrLn $ "\n'" ++ maxStr ++ "' is not a natural number!"
-            exit
-
-exit :: IO ()
-exit = do
-    putStrLn "Press any key to continue. . ."
-    getChar
-    return ()
+                    putStrLn $ "LOADED. . . in " ++ formatTime (end - start) ++ "s [1 Thread]"
+                    putStrLn $ "\nThe conjecture is proved for all natural numbers smaller or equals to " ++ show max ++ "!"
+                counter -> putStrLn $ "\nThe conjecture is disproved! Here are the counter examples:\n" ++ (init $ tail $ show counter)
+                
+        _ -> putStrLn $ "\n'" ++ maxStr ++ "' is not a natural number!"
 
 digs :: Natural -> [Natural]
-digs 0 = [0]
-digs x = digs (x `div` 10) ++ [x `mod` 10]
+digs x = case x of
+    0 -> [0]
+    x -> digs (x `div` 10) ++ [x `mod` 10]
 
 sum' :: Natural -> Natural
 sum' x = sum $ digs x
