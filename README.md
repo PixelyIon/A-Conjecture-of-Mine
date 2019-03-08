@@ -8,6 +8,7 @@ Prove that <img src="https://latex.codecogs.com/gif.latex?\forall&space;a,&space
 
 ## Performance
 The conjecture was [proved by exhaustion](https://en.wikipedia.org/wiki/Proof_by_exhaustion) for the interval <img src="https://latex.codecogs.com/gif.latex?[0;10^3]" title="[0;10^3]" /> in multiple language implementations. The performance of each language was then avaliated as the following:
+
 |Language      |Time   |Number of Threads Used|
 |--------------|-------|----------------------|
 |**Rust**      |22 _s_ |2                     |
