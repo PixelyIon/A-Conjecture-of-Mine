@@ -26,29 +26,14 @@ function ask(question) {
 }
 
 function getCounterExp(max) {
-    const starTime = new Date;
-
     const counterexmpls = [];
-    let loadBar = 0;
 
-    for (let a = 1; a <= max; a++) {
-        
-        // Print the progress on the screen
-        const newLoadBar = Math.round(a * 100 / max);
-        if (loadBar != newLoadBar) {
-            console.clear();
-            loadBar = newLoadBar;
-            console.log(`LOADING. . . ${loadBar}%`);
-        }
-
+    for (let a = 1; a <= max; a++)
         for (let b = a; b <= max; b++) {
             const diff = (a + b).sumDigits() - (a.sumDigits() + b.sumDigits());
             if (diff % 9 !== 0) counterexmpls.push([a, b]);
         }
-    }
 
-    const elepsedTime = Math.round((new Date().getTime() - starTime.getTime()) / 100) / 10;
-    console.log(`LOADED. . . in ${elepsedTime}s\n`);
     return counterexmpls;
 }
 
@@ -58,7 +43,14 @@ console.log("For all A and B in N, S(A + B) = S(A) + S(B) - 9k, where k is an in
 
 ask("What value would you like to test the conjecture for? ").then(ans => {
     if (!isNaN(Number(ans))) {
-        const max = Math.round(Number(ans)), counterexmpls = getCounterExp(max);
+        console.log("\nLOADING. . .");
+
+        const max = Math.round(Number(ans))
+            , starTime = new Date
+            , counterexmpls = getCounterExp(max)
+            , elepsed = Math.round((new Date().getTime() - starTime.getTime()) / 100) / 10;
+
+        console.log(`LOADED. . . in ${elepsed}s\n`);
 
         if (counterexmpls.length === 0)
             console.log(`The conjecture is proved for all natural numbers smaller or equals to ${max}!`);
@@ -66,5 +58,5 @@ ask("What value would you like to test the conjecture for? ").then(ans => {
             console.log("The conjecture is disproved! Here are the counter examples:");
             console.log(counterexmpls.map(pair => `(${pair[0]}, ${pair[1]})`).join(", "));
         }
-    } else console.log(`'${ans}' is not a natural number!`);
+    } else console.log(`\n'${ans}' is not a natural number!`);
 });
