@@ -3,9 +3,7 @@
 # Let S: N -> N be the sum of the digits of a positive integer.
 # For all A and B in N, S(A + B) = S(A) + S(B) - 9k, where k is an interger.
 
-import sys
-import os
-import time
+import sys, os, time
 from functools import reduce
 
 # A function for clearing the prompt
@@ -35,21 +33,18 @@ def get_counterexmpls(n):
             diff = sum_digits(a + b) - (sum_digits(a) + sum_digits(b))
 
             if not diff % 9 == 0:
-                counterexmpls.append([a, b])
+                counterexmpls.append((a, b))
 
     # Mesure the elepsed time
     elepsed = time.time() - start
-    clear()
-    print("LOADED. . . {}% in {}s\n".format(load_bar, elepsed))
+    print("LOADED. . . in {:.1f}s\n".format(elepsed))
     
     return counterexmpls    
 
 
-print("""The following script is a simple test for the following conjecture:
-
-Let S: N -> N be the sum of the digits of a positive integer.
-For all A and B in N, S(A + B) = S(A) + S(B) - 9k, where k is an interger.
-""")
+print("\nThe following script is a simple test for the following conjecture:\n")
+print("Let S: N -> N be the sum of the digits of a positive integer.")
+print("For all A and B in N, S(A + B) = S(A) + S(B) - 9k, where k is an interger.\n")
 user_input = input("What value would you like to test the conjecture for? ")
 
 try:
@@ -61,11 +56,6 @@ try:
         print("The conjecture is proved for all natural numbers smaller or equals to {}!".format(maximum))
     else:
         print("The conjecture is disproved! Here are the counter examples:")
-
-        counterexmpls_str = ""
-        for pair in counterexmpls:
-            counterexmpls_str = "{}, ({}, {})".format(counterexmpls_str, pair[0], pair[1])
-        
-        print(counterexmpls_str)
+        print(", ".join(map(lambda pair: "({}, {})".format(pair[0], pair[1]), counterexmpls)))
 except:
-    print("'{}' isn't a valid number!".format(user_input))
+    print("'{}' isn't a natural number!".format(user_input))

@@ -5,36 +5,28 @@
 
 const readline = require('readline');
 
-Array.prototype.none = function() {
-    return this.length == 0;
-}
-
 Number.prototype.digits = function() {
-    return Array.from(String(this)).map(char => Number(char));
-}
-
-Number.prototype.divides = function(n) {
-    return (n / this) % 1 == 0;
+    return Array.from(Math.abs(Math.round(this)).toString()).map(char => Number(char));
 }
 
 Number.prototype.sumDigits = function() {
     return this.digits().reduce((a, b) => a + b);
 }
 
-function askQuestion(query) {
+function ask(question) {
     const rl = readline.createInterface({
         input: process.stdin,
         output: process.stdout,
     });
 
-    return new Promise(resolve => rl.question(query, ans => {
+    return new Promise(resolve => rl.question(question, ans => {
         rl.close();
         resolve(ans);
     }))
 }
 
 function getCounterExp(max) {
-    const starTime = new Date();
+    const starTime = new Date;
 
     const counterexmpls = [];
     let loadBar = 0;
@@ -49,39 +41,30 @@ function getCounterExp(max) {
             console.log(`LOADING. . . ${loadBar}%`);
         }
 
-        for (b = a; b <= max; b++) {
-            // Check if the difference between S(a + b) and (S(a) + S(b)) is a multiple of 9
-            const conjectureHolds = (9).divides((a + b).sumDigits() - (a.sumDigits() + b.sumDigits()));
-            if (!conjectureHolds) counterexmpls.push([a, b]);
+        for (let b = a; b <= max; b++) {
+            const diff = (a + b).sumDigits() - (a.sumDigits() + b.sumDigits());
+            if (diff % 9 !== 0) counterexmpls.push([a, b]);
         }
     }
 
-    const elepsedTime = (new Date() - starTime) / 1000;
-    console.clear();
-    console.log(`LOADED. . . ${loadBar}% in ${elepsedTime}s\n`);
+    const elepsedTime = Math.round((new Date().getTime() - starTime.getTime()) / 100) / 10;
+    console.log(`LOADED. . . in ${elepsedTime}s\n`);
     return counterexmpls;
 }
 
-console.log(`This script is a simple test for the following conjecture:
-    
-Let S: N -> N be the sum of the digits of a positive integer.
-For all A and B in N, S(A + B) = S(A) + S(B) - 9k, where k is an interger.
-`);
+console.log("\nThis script is a simple test for the following conjecture:\n");
+console.log("Let S: N -> N be the sum of the digits of a positive integer.");
+console.log("For all A and B in N, S(A + B) = S(A) + S(B) - 9k, where k is an interger.\n");
 
-askQuestion("What value would you like to test the conjecture for? ").then(ans => {
+ask("What value would you like to test the conjecture for? ").then(ans => {
     if (!isNaN(Number(ans))) {
         const max = Math.round(Number(ans)), counterexmpls = getCounterExp(max);
 
-        if (counterexmpls.none())
+        if (counterexmpls.length === 0)
             console.log(`The conjecture is proved for all natural numbers smaller or equals to ${max}!`);
         else {
             console.log("The conjecture is disproved! Here are the counter examples:");
-
-            let counterexmplsStr = "";
-            for (pair in counterexmpls)
-                counterexmpls = `${counterexmplsStr}, (${pair[0]}, ${pair[1]})`;
-            
-            console.log(counterexmplsStr);
+            console.log(counterexmpls.map(pair => `(${pair[0]}, ${pair[1]})`).join(", "));
         }
-    } else console.log(`'${ans}' is not an interger!`);
+    } else console.log(`'${ans}' is not a natural number!`);
 });

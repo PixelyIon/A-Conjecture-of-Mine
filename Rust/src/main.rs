@@ -35,8 +35,8 @@ fn main() {
 
     match user_input.trim().parse::<usize>() {
         Ok(max) => {
-            let start_time = Instant::now();
             println!("\nLOADING. . .");
+            let start_time = Instant::now();
             let counterexpls = get_all_countrexpls(max, n_threads);
             let duration = start_time.elapsed();
 
@@ -48,7 +48,7 @@ fn main() {
                 println!("The conjecture is disproved! Here are the counter examples:");
 
                 let counterexpls_str: Vec<String> = counterexpls.iter().map(|(a, b)| format!("({}, {})", a, b)).collect();
-                println!("{}\n", counterexpls_str.join(","));
+                println!("{}\n", counterexpls_str.join(", "));
             }
         }, 
         Err(_) => println!("'{}' is not a natural number!", user_input.trim())
@@ -60,7 +60,7 @@ fn get_all_countrexpls(max: usize, n_threads: usize) -> Vec<(usize, usize)> {
 
         // Thread related variables
         let (coutexpl_sender, coutexpl_reciever): (Sender<Vec<(usize, usize)>>, Receiver<Vec<(usize, usize)>>) = mpsc::channel();
-        let mut child_threads = Vec::new();
+        let mut child_threads = Vec::with_capacity(n_threads);
         let range_lenght = max / n_threads;
         let mut range: Vec<usize> = (0..max).collect();
 
@@ -72,7 +72,7 @@ fn get_all_countrexpls(max: usize, n_threads: usize) -> Vec<(usize, usize)> {
         range.shuffle(&mut thread_rng());
 
         // Separate a specific slice of the range and assign it to the thread
-        let mut sub_ranges = Vec::new();
+        let mut sub_ranges = Vec::with_capacity(n_threads);
         for i in 0..n_threads {
             let start = i * range_lenght;
             let end = start + range_lenght;
@@ -81,7 +81,7 @@ fn get_all_countrexpls(max: usize, n_threads: usize) -> Vec<(usize, usize)> {
 
         // Account for the fact that the maximum number tested may not be
         // a multiple of the numbers of threads used for computations, hence
-        // the number of test performed by each thread may not be constant
+        // the number of tests performed by each thread may not be constant
         if max % n_threads != 0 {
             let mut rng = thread_rng();
             let end = sub_ranges.len() - 1;
@@ -135,10 +135,15 @@ fn get_digits(n: usize) -> Vec<usize> {
     if n == 0 {
         vec![0]
     } else {
-        let mut digs = vec![n % 10];
-        digs.append(&mut get_digits(n / 10));
+        let mut output = Vec::with_capacity((n as f64).log(10.0).floor() as usize + 2);
+        let mut part = n;
 
-        digs
+        while part != 0 {
+            output.push(part % 10);
+            part /= 10;
+        }
+
+        output
     }
 }
 

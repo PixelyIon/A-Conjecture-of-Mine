@@ -1,4 +1,4 @@
-# Conjecture Testing
+# A Conjecture of Mine
 An exercise on _polyglossy_. The same problem solved on multiple languages.
 
 ## Problem
@@ -11,9 +11,9 @@ The conjecture was [proved by exhaustion](https://en.wikipedia.org/wiki/Proof_by
 
 |Language      |Time   |Number of Threads Used|
 |--------------|-------|----------------------|
-|**Rust**      |22 _s_ |2                     |
-|**Haskell**   |48 _s_ |1                     |
-|**JavaScript**|197 _s_|1                     |
-|**TypeScript**|219 _s_|1                     |
+|**Rust**      |15 _s_ |2                     |
+|**Haskell**   |58 _s_ |1                     |
+|**TypeScript**|212 _s_|1                     |
+|**JavaScript**|224 _s_|1                     |
 |**Ruby**      |273 _s_|1                     |
-|**Python**    |522 _s_|1                     |
+|**Python**    |562 _s_|1                     |

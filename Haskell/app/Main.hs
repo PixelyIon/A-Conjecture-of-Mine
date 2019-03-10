@@ -1,3 +1,8 @@
+-- The following program is a simple test for the following conjecture:
+
+-- Let S: N -> N be the sum of the digits of a positive integer.
+-- For all A and B in N, S(A + B) = S(A) + S(B) - 9k, where k is an interger.
+
 module Main where
 
 import Numeric
@@ -7,9 +12,6 @@ import GHC.Conc
 
 main :: IO ()
 main = do
-    -- Configure the number of threads used by the program
-    setNumCapabilities 1
-
     putStrLn "\nThis program is a simple test for the following conjecture:\n"
     putStrLn "Let S: N -> N be the sum of the digits of a positive integer."
     putStrLn "For all A and B in N, S(A + B) = S(A) + S(B) - 9k, where k is an interger.\n"

@@ -58,14 +58,6 @@ def clear
     end
 end
 
-def pause
-    if /win32|win64|\.NET|windows|cygwin|mingw32/i.match(RUBY_PLATFORM)
-        system('pause')
-    else
-        system('read')
-    end
-end
-
 puts "The following script is a simple test for the following conjecture:\n\n"
 puts "Let S: N -> N be the sum of the digits of a positive integer."
 puts "For all A and B in N, S(A + B) = S(A) + S(B) - 9k, where k is an interger.\n\n"
@@ -75,7 +67,7 @@ user_input = gets
 
 # Check if the input provided by the user in an iteger
 if /^(?:-?[1-9]\d*$)|(?:^0)$/.match(user_input)
-    max = user_input.to_i()
+    max = user_input.to_i
     counterexpls = get_counterexpls(max)
 
     if counterexpls.length == 0
@@ -93,6 +85,3 @@ if /^(?:-?[1-9]\d*$)|(?:^0)$/.match(user_input)
 else
     puts "'#{user_input.chomp}' isn't an iteger!"
 end
-
-puts ""
-pause()

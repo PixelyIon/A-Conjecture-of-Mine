@@ -35,7 +35,7 @@ function getCounterExp(max: number) {
 
     for (let a = 0; a <= max; a++) {
 
-        const newLoadBar = a * 100 / max;
+        const newLoadBar = Math.round(a * 100 / max);
         if (loadBar != newLoadBar) {
             console.clear();
             loadBar = newLoadBar;
@@ -46,17 +46,14 @@ function getCounterExp(max: number) {
             if (!test(a, b)) counterexmpls.push([a, b]);
     }
 
-    const elepsedTime = (new Date().getTime() - starTime.getTime()) / 1000;
-    console.clear();
-    console.log(`LOADED. . . ${loadBar}% in ${elepsedTime}s\n`);
+    const elepsedTime = Math.round((new Date().getTime() - starTime.getTime()) / 100) / 10;
+    console.log(`LOADED. . . in ${elepsedTime}s\n`);
     return counterexmpls;
 }
 
-console.log(`This script is a simple test for the following conjecture:
-    
-Let S: N -> N be the sum of the digits of a positive integer.
-For all A and B in N, S(A + B) = S(A) + S(B) - 9k, where k is an interger.
-`);
+console.log("\nThis script is a simple test for the following conjecture:\n");
+console.log("Let S: N -> N be the sum of the digits of a positive integer.");
+console.log("For all A and B in N, S(A + B) = S(A) + S(B) - 9k, where k is an interger.\n");
 
 ask("What value would you like to test the conjecture for? ").then(ans => {
     if (!isNaN(parseInt(ans))) {
@@ -66,12 +63,7 @@ ask("What value would you like to test the conjecture for? ").then(ans => {
             console.log(`The conjecture is proved for all natural numbers smaller or equals to ${max}!`);
         else {
             console.log("The conjecture is disproved! Here are the counter examples:");
-
-            let counterexmplsStr = "";
-            for (const pair of counterexmpls)
-                counterexmplsStr = `${counterexmplsStr}, (${pair[0]}, ${pair[1]})`;
-            
-            console.log(counterexmplsStr);
+            console.log(counterexmpls.map(pair => `(${pair[0]}, ${pair[1]})`).join(", "));
         }
-    } else console.log(`'${ans}' is not an interger!`);
+    } else console.log(`'${ans}' is not a natural number!`);
 }).catch(console.error);
