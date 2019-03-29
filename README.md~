@@ -11,8 +11,7 @@ The conjecture was [proved by exhaustion](https://en.wikipedia.org/wiki/Proof_by
 
 |Language      |Time   |
 |--------------|-------|
-|**Rust**      |0 _s_  |
-|**C**         |5 _s_  | 
+|**Rust**      |14 _s_ |
 |**Haskell**   |48 _s_ |
 |**TypeScript**|181 _s_|
 |**JavaScript**|191 _s_|

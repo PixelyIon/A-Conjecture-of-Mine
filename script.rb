@@ -1,10 +1,15 @@
+# This script is a simple test for the following conjecture:
+
+# Let S: N -> N be the sum of the digits of a positive integer.
+# For all A and B in N, S(A + B) = S(A) + S(B) - 9k, where k is an interger.
+
 class Integer
     def divides(n)
         return n % self == 0
     end
 
     def digits(base: 10)
-        quotient, remainder = divmod(base)
+        (quotient, remainder) = divmod(base)
         return quotient == 0 ? [remainder] : [*quotient.digits(base: base), remainder]
     end
 
@@ -30,13 +35,12 @@ end
 
 puts "\nThis script is a simple test for the following conjecture:\n\n"
 puts "Let S: N -> N be the sum of the digits of a positive integer."
-puts "For all A and B in N, S(A + B) = S(A) + S(B) - 9k, where k is an interger.\n\n"
+puts "For all A and B in N, S(A + B) = S(A) + S(B) - 9k, where k is an integer.\n\n"
 puts "What value would you like to test the conjecture for?"
 
 user_input = gets
 puts "\nLOADING. . ."
 
-# Check if the input provided by the user in an iteger
 if /^\d+$/.match(user_input.chomp)
     max = user_input.chomp.to_i
     start = Time.now

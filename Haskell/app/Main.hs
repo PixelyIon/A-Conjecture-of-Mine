@@ -20,8 +20,8 @@ main = do
 
     case readDec maxStr :: [(Natural, String)] of
         [(max, "")] -> do
-            start <- getTime Monotonic
             putStrLn "\nLOADING. . ."
+            start <- getTime Monotonic
 
             case exceptions' 0 max of
                 [] -> do 

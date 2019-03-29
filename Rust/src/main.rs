@@ -31,41 +31,33 @@ fn main() {
 
     // Listen for user input
     let _ = prompt.write("\nWhat value would you like to test the conjecture for? ");
-    let user_input = input().read_line().unwrap_or(String::new());
+    let user_input = input().read_line().unwrap_or_default();
 
     match user_input.trim().parse::<usize>() {
         Ok(max) => {
             println!("\nLOADING. . .");
             let start_time = Instant::now();
-            let counterexpls = get_all_countrexpls(max, n_threads);
+            let counterexpl = get_countrexpl(max, n_threads);
             let duration = start_time.elapsed();
 
             // Print the results
             println!("LOADED. . . in {}s [{} Threads]\n", duration.as_secs(), n_threads);
-            if counterexpls.len() == 0 {
-                println!("The conjecture is proved for all natural numbers smaller or equals to {}!", max);
-            } else {
-                println!("The conjecture is disproved! Here are the counter examples:");
-
-                let counterexpls_str: Vec<String> = counterexpls.iter().map(|(a, b)| format!("({}, {})", a, b)).collect();
-                println!("{}\n", counterexpls_str.join(", "));
+            match counterexpl {
+                None => println!("The conjecture is proved for all natural numbers smaller or equals to {}!", max),
+                Some((a, b)) => println!("The conjecture is disproved! Here's a counter example: ({}, {})", a, b)
             }
         }, 
         Err(_) => println!("'{}' is not a natural number!", user_input.trim())
     }
 }
 
-fn get_all_countrexpls(max: usize, n_threads: usize) -> Vec<(usize, usize)> {
+fn get_countrexpl(max: usize, n_threads: usize) -> Option<(usize, usize)> {
     if max / n_threads > 0 && n_threads > 1 {
 
-        // Thread related variables
-        let (coutexpl_sender, coutexpl_reciever): (Sender<Vec<(usize, usize)>>, Receiver<Vec<(usize, usize)>>) = mpsc::channel();
+        let (coutexpl_sender, coutexpl_reciever): (Sender<Option<(usize, usize)>>, Receiver<Option<(usize, usize)>>) = mpsc::channel();
         let mut child_threads = Vec::with_capacity(n_threads);
         let range_lenght = max / n_threads;
         let mut range: Vec<usize> = (0..max).collect();
-
-        // Conjecture related variables
-        let mut counterexpls: Vec<(usize, usize)> = Vec::new();
 
         // Shuffle the values in the range to get an even distribution of
         // calculations across all threads
@@ -97,56 +89,48 @@ fn get_all_countrexpls(max: usize, n_threads: usize) -> Vec<(usize, usize)> {
             let thread_range = sub_ranges.pop().unwrap();
 
             let child = thread::spawn(move || {
-                thread_countr_sd.send(get_range_countrexpls(thread_range, max))
+                thread_countr_sd.send(get_range_countrexpl(thread_range, max))
                     .expect(&format!("Thread n°{} was unable to sent a message trought the channel", i));
             });
             
             child_threads.push(child);
-            counterexpls.append(&mut coutexpl_reciever.recv().unwrap());
+            if let Ok(Some(c_expl)) = coutexpl_reciever.recv() {
+                return Some(c_expl);
+            }
         }
 
         for child in child_threads {
             child.join().expect("Child thread panicked");
         }
 
-        counterexpls
+        None
     } else {
-        get_range_countrexpls((0..max).collect(), max)
+        get_range_countrexpl((0..max).collect(), max)
     }
 }
 
-fn get_range_countrexpls(range: Vec<usize>, max: usize) -> Vec<(usize, usize)> {
-    let mut counterexpls = Vec::new();
-
+fn get_range_countrexpl(range: Vec<usize>, max: usize) -> Option<(usize, usize)> {
     for a in range {
         for b in a..max {
             let difference = sum_digits(a + b) - sum_digits(a) - sum_digits(b);
 
             if difference % 9 != 0 {
-                counterexpls.push((a, b));
+                return Some((a, b));
             }
         }
     }
 
-    counterexpls
-}
-
-fn get_digits(n: usize) -> Vec<usize> {
-    if n == 0 {
-        vec![0]
-    } else {
-        let mut output = Vec::with_capacity((n as f64).log(10.0).floor() as usize + 2);
-        let mut part = n;
-
-        while part != 0 {
-            output.push(part % 10);
-            part /= 10;
-        }
-
-        output
-    }
+    None
 }
 
 fn sum_digits(n: usize) -> isize {
-    get_digits(n).iter().sum::<usize>() as isize
+    let mut sum = 0;
+    let mut part = n;
+
+    while part != 0 {
+        sum += (part % 10) as isize;
+        part /= 10;
+    }
+
+    sum
 }
