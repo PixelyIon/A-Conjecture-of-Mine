@@ -3,47 +3,50 @@
 # Let S: N -> N be the sum of the digits of a positive integer.
 # For all A and B in N, S(A + B) = S(A) + S(B) - 9k, where k is an interger.
 
-import time
-from functools import reduce
-
-def digits(n):
-    return map(lambda c: int(c), list(str(n)))
+from time import time
 
 def sum_digits(n):
-    return reduce((lambda a, b: a + b), digits(n))
+    parc = abs(n)
+    sum_d = 0
 
-def get_counterexmpls(n):
-    counterexmpls = []
+    while parc > 0:
+        sum_d += parc % 10
+        parc //= 10
 
+    return sum_d
+
+def get_counterexmpl(n):
     for a in range(n + 1):
         for b in range(a, n + 1):
             diff = sum_digits(a + b) - (sum_digits(a) + sum_digits(b))
 
             if not diff % 9 == 0:
-                counterexmpls.append((a, b))
+                return (a, b)
     
-    return counterexmpls   
+    return None  
 
 
 print("\nThis script is a simple test for the following conjecture:\n")
 print("Let S: N -> N be the sum of the digits of a positive integer.")
 print("For all A and B in N, S(A + B) = S(A) + S(B) - 9k, where k is an interger.\n")
-user_input = input("What value would you like to test the conjecture for? ")
+max_str = input("What value would you like to test the conjecture for? ")
 print("\nLOADING. . .")
 
 try:
-    maximum = abs(int(user_input))
+    maximum = int(max_str)
+    if maximum < 0:
+        raise ValueError
 
-    start = time.time()
-    counterexmpls = get_counterexmpls(maximum)
-    
-    elepsed = time.time() - start
-    print("LOADED. . . in {:.1f}s\n".format(elepsed))
+    start = time()
+    counterexmpl = get_counterexmpl(maximum)
+    elepsed = time() - start
 
-    if len(counterexmpls) == 0:
+    print("LOADED. . . in {:.0f}ms\n".format(elepsed * 10**3))
+
+    if counterexmpl == None:
         print("The conjecture is proved for all natural numbers smaller or equals to {}!".format(maximum))
     else:
-        print("The conjecture is disproved! Here are the counter examples:")
-        print(", ".join(map(lambda pair: "({}, {})".format(pair[0], pair[1]), counterexmpls)))
+        (a, b) = counterexmpl
+        print("The conjecture is disproved! Here's a counterexample: ({}, {})".format(a, b))
 except:
-    print("'{}' isn't a natural number!".format(user_input))
+    print("'{}' isn't a natural number!".format(max_str))

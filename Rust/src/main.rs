@@ -41,10 +41,10 @@ fn main() {
             let duration = start_time.elapsed();
 
             // Print the results
-            println!("LOADED. . . in {}s [{} Threads]\n", duration.as_secs(), n_threads);
+            println!("LOADED. . . in {}ms [{} Threads]\n", duration.as_millis(), n_threads);
             match counterexpl {
                 None => println!("The conjecture is proved for all natural numbers smaller or equals to {}!", max),
-                Some((a, b)) => println!("The conjecture is disproved! Here's a counter example: ({}, {})", a, b)
+                Some((a, b)) => println!("The conjecture is disproved! Here's a counterexample: ({}, {})", a, b)
             }
         }, 
         Err(_) => println!("'{}' is not a natural number!", user_input.trim())

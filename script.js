@@ -3,14 +3,20 @@
 // Let S: N -> N be the sum of the digits of a positive integer.
 // For all A and B in N, S(A + B) = S(A) + S(B) - 9k, where k is an interger.
 
-const readline = require('readline');
+const readline = require("readline");
 
-Number.prototype.digits = function() {
-    return Array.from(Math.abs(Math.round(this)).toString()).map(char => Number(char));
-}
+Number.prototype.sum = function() {
+    if (isNaN(this) || !isFinite(this) || !this)
+        throw new TypeError
 
-Number.prototype.sumDigits = function() {
-    return this.digits().reduce((a, b) => a + b);
+    let parc = Math.abs(this), sum = 0;
+
+    while (parc > 0) {
+        sum += parc % 10;
+        parc = Math.floor(parc / 10);
+    }
+
+    return sum;
 }
 
 function ask(question) {
@@ -26,15 +32,13 @@ function ask(question) {
 }
 
 function getCounterExp(max) {
-    const counterexmpls = [];
-
     for (let a = 1; a <= max; a++)
         for (let b = a; b <= max; b++) {
-            const diff = (a + b).sumDigits() - (a.sumDigits() + b.sumDigits());
-            if (diff % 9 !== 0) counterexmpls.push([a, b]);
+            const diff = (a + b).sum() - (a.sum() + b.sum());
+            if (diff % 9 !== 0) return [a, b];
         }
 
-    return counterexmpls;
+    return null;
 }
 
 console.log("\nThis script is a simple test for the following conjecture:\n");
@@ -47,16 +51,13 @@ ask("What value would you like to test the conjecture for? ").then(ans => {
 
         const max = Math.round(Number(ans))
             , starTime = new Date
-            , counterexmpls = getCounterExp(max)
-            , elepsed = Math.round((new Date().getTime() - starTime.getTime()) / 100) / 10;
+            , counterexmpl = getCounterExp(max)
+            , elepsed = new Date().getTime() - starTime.getTime();
 
-        console.log(`LOADED. . . in ${elepsed}s\n`);
+        console.log(`LOADED. . . in ${elepsed}ms\n`);
 
-        if (counterexmpls.length === 0)
-            console.log(`The conjecture is proved for all natural numbers smaller or equals to ${max}!`);
-        else {
-            console.log("The conjecture is disproved! Here are the counter examples:");
-            console.log(counterexmpls.map(pair => `(${pair[0]}, ${pair[1]})`).join(", "));
-        }
+        if (counterexmpl === null) console.log(`The conjecture is proved for all natural numbers smaller or equals to ${max}!`);
+        else console.log(`The conjecture is disproved! Here's a counterexample: (${counterexmpl[0]}, ${counterexmpl[1]})`);
+        
     } else console.log(`\n'${ans}' is not a natural number!`);
 });

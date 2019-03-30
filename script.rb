@@ -4,33 +4,31 @@
 # For all A and B in N, S(A + B) = S(A) + S(B) - 9k, where k is an interger.
 
 class Integer
-    def divides(n)
-        return n % self == 0
-    end
+    def sum
+        part = self.abs()
+        sum = 0
 
-    def digits(base: 10)
-        (quotient, remainder) = divmod(base)
-        return quotient == 0 ? [remainder] : [*quotient.digits(base: base), remainder]
-    end
+        while part > 0
+            sum += part % 10
+            part /= 10
+        end
 
-    def sum_digits
-        return self.digits.inject(0, &:+)
+        return sum
     end
 end
 
-def get_counterexpls(max)
-    counterexpls = []
+def get_counterexpl(max)
     for a in (0..max)
         for b in (a..max)
-            difference = (a + b).sum_digits - a.sum_digits - b.sum_digits
+            diff = (a + b).sum() - a.sum() - b.sum()
 
-            if !9.divides(difference)
-                counterexpls.push([a, b])
+            if diff % 9 != 0
+                return [a, b]
             end
         end
     end
 
-    return counterexpls
+    return nil
 end
 
 puts "\nThis script is a simple test for the following conjecture:\n\n"
@@ -38,23 +36,22 @@ puts "Let S: N -> N be the sum of the digits of a positive integer."
 puts "For all A and B in N, S(A + B) = S(A) + S(B) - 9k, where k is an integer.\n\n"
 puts "What value would you like to test the conjecture for?"
 
-user_input = gets
+max_str = gets.chomp
 puts "\nLOADING. . ."
 
-if /^\d+$/.match(user_input.chomp)
-    max = user_input.chomp.to_i
-    start = Time.now
-    counterexpls = get_counterexpls(max)
+if /^\d+$/.match(max_str)
+    max = max_str.chomp.to_i
+    start = Time.now()
+    counterexpl = get_counterexpl(max)
 
-    elepsed = Time.now - start
-    puts "LOADED. . . in #{elepsed.round(1)}s\n\n"
+    elepsed = Time.now() - start
+    puts "LOADED. . . in #{(elepsed * 1000).round()}ms\n\n"
 
-    if counterexpls.length == 0
+    if counterexpl == nil
         puts "The conjecture is proved for all natural numbers smaller or equals to #{max}!"
     else
-        puts "The conjecture is disproved! Here are the counter examples:"
-        puts counterexpls.join(", ")
+        puts "The conjecture is disproved! Here's a counterexample: (#{counterexpl[0]}, #{counterexpl[1]})"
     end
 else
-    puts "'#{user_input.chomp}' isn't a natural number!"
+    puts "'#{max_str}' isn't a natural number!"
 end
