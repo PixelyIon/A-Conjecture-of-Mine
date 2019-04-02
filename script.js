@@ -19,6 +19,15 @@ Number.prototype.sum = function() {
     return sum;
 }
 
+Number.sums = function getSums(max) {
+    const output = [], maxRange = 2 * (max + 1);
+    
+    for (let i = 0; i <= maxRange; i++)
+        output.push(i.sum());
+
+    return output;
+}
+
 function ask(question) {
     const rl = readline.createInterface({
         input: process.stdin,
@@ -32,9 +41,11 @@ function ask(question) {
 }
 
 function getCounterExp(max) {
+    const sums = Number.sums(max);
+
     for (let a = 1; a <= max; a++)
         for (let b = a; b <= max; b++) {
-            const diff = (a + b).sum() - (a.sum() + b.sum());
+            const diff = sums[a + b] - sums[a] - sums[b];
             if (diff % 9 !== 0) return [a, b];
         }
 

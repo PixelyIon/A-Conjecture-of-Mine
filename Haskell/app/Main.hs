@@ -21,30 +21,32 @@ main = do
         [(max, "")] -> do
             putStrLn "\nLOADING. . ."
             start <- getTime Monotonic
-
+            
             case counter' 0 max of
-                [] -> do 
+                Nothing -> do
                     end <- getTime Monotonic
                     putStrLn $ "LOADED. . . in " ++ formatMils (end - start) ++ "ms [1 Thread]"
                     putStrLn $ "\nThe conjecture is proved for all natural numbers smaller or equals to " ++ show max ++ "!"
-                counter -> putStrLn $ "\nThe conjecture is disproved! Here's a counterexample: ("++ (show $ fst $ head $counter)
-                    ++ ", " ++ (show $ snd $ head $counter) ++ ")"
+                Just counter -> do
+                    end <- getTime Monotonic
+                    putStrLn $ "LOADED. . . in " ++ formatMils (end - start) ++ "ms [1 Thread]"
+                    putStrLn $ "\nThe conjecture is disproved! Here's a counterexample: (" ++ (show $ fst $ counter) 
+                        ++ ", " ++ (show $ snd $ counter) ++ ")"
                 
         _ -> putStrLn $ "\n'" ++ maxStr ++ "' is not a natural number!"
 
-digs :: Natural -> [Natural]
-digs x = case x of
-    0 -> [0]
-    x -> digs (x `div` 10) ++ [x `mod` 10]
-
 sum' :: Natural -> Natural
-sum' x = sum $ digs x
+sum' x = case x of
+    0 -> 0
+    x -> (x `mod` 10) + sum' (x `div` 10)
 
 test' :: Natural -> Natural -> Bool
 test' a b = ((fromEnum $ sum' (a + b)) - (fromEnum $ sum' a) - (fromEnum $ sum' b)) `mod` 9 == 0
 
-counter' :: Natural -> Natural -> [(Natural, Natural)]
-counter' min max = [(a, b) | a <- [min..max], b <- [a..max], not $ test' a b]
+counter' :: Natural -> Natural -> Maybe (Natural, Natural)
+counter' min max = case [(a, b) | a <- [min..max], b <- [a..max], not $ test' a b] of
+    [] -> Nothing
+    fst : _ -> Just fst
 
 formatMils :: TimeSpec -> [Char]
 formatMils t = show (sec t * 10^3 + nsec t `div` 10^6)

@@ -11,9 +11,9 @@ The conjecture was [proved by exhaustion](https://en.wikipedia.org/wiki/Proof_by
 
 |Language      |Milliseconds|
 |--------------|------------|
-|**Rust**      |1100        |
-|**C**         |4913        | 
-|**JavaScript**|39168       |
-|**Ruby**      |46253       |
-|**Haskell**   |48263       |
-|**Python**    |134988      |
+|**Rust**      |80          |
+|**C**         |271         | 
+|**JavaScript**|656         |
+|**Ruby**      |9850        |
+|**Python**    |16032       |
+|**Haskell**   |28365       |

@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
 
@@ -33,12 +34,17 @@ int main()
     printf("\nLOADING. . .");
     clock_t start = clock(), end;
 
+    int sums_c = 2 * (MAX + 1), *sums;
+    sums = malloc(sizeof(int) * sums_c);
+    for (int i = 0; i <= sums_c; i++)
+        sums[i] = sum_digits(i);
+
     for (int a = 0; a <= MAX; a++)
         for (int b = a; b <= MAX; b++)
-            if ((sum_digits(a + b) - (sum_digits(a) +sum_digits(b))) % 9 != 0)
+            if ((sums[a + b] - (sums[a] + sums[b])) % 9 != 0)
             {
                 end = clock();
-                printf("\nLOADED. . . in %ums\n", (unsigned)((end - start) * 1000 / CLOCKS_PER_SEC));
+                printf("\nLOADED. . . in %ums [1 Thread]\n", (unsigned)((end - start) * 1000 / CLOCKS_PER_SEC));
                 printf("\nThe conjecture is disproved! Here's a counterexample: (%u, %u)", a, b);
 
                 return 0;

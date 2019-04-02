@@ -15,12 +15,24 @@ class Integer
 
         return sum
     end
+
+    def self.sums(max)
+        output = []
+        
+        for i in 0..((max + 1) * 2)
+            output << i.sum()
+        end
+
+        return output
+    end
 end
 
 def get_counterexpl(max)
+    sums = Integer.sums(max)
+
     for a in (0..max)
         for b in (a..max)
-            diff = (a + b).sum() - a.sum() - b.sum()
+            diff = sums[a + b] - sums[a] - sums[b]
 
             if diff % 9 != 0
                 return [a, b]

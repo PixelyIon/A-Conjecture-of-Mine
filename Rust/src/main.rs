@@ -52,6 +52,8 @@ fn main() {
 }
 
 fn get_countrexpl(max: usize, n_threads: usize) -> Option<(usize, usize)> {
+    let sums = get_sums(max);
+
     if max / n_threads > 0 && n_threads > 1 {
 
         let (coutexpl_sender, coutexpl_reciever): (Sender<Option<(usize, usize)>>, Receiver<Option<(usize, usize)>>) = mpsc::channel();
@@ -87,9 +89,10 @@ fn get_countrexpl(max: usize, n_threads: usize) -> Option<(usize, usize)> {
         for i in 0..n_threads {
             let thread_countr_sd = coutexpl_sender.clone();
             let thread_range = sub_ranges.pop().unwrap();
+            let thread_sums = sums.clone();
 
             let child = thread::spawn(move || {
-                thread_countr_sd.send(get_range_countrexpl(thread_range, max))
+                thread_countr_sd.send(get_range_countrexpl(thread_range, max, &thread_sums))
                     .expect(&format!("Thread n°{} was unable to sent a message trought the channel", i));
             });
             
@@ -105,14 +108,14 @@ fn get_countrexpl(max: usize, n_threads: usize) -> Option<(usize, usize)> {
 
         None
     } else {
-        get_range_countrexpl((0..max).collect(), max)
+        get_range_countrexpl((0..max).collect(), max, &sums)
     }
 }
 
-fn get_range_countrexpl(range: Vec<usize>, max: usize) -> Option<(usize, usize)> {
+fn get_range_countrexpl(range: Vec<usize>, max: usize, sums: &Vec<isize>) -> Option<(usize, usize)> {
     for a in range {
         for b in a..max {
-            let difference = sum_digits(a + b) - sum_digits(a) - sum_digits(b);
+            let difference = sums[a + b] - sums[a] - sums[b];
 
             if difference % 9 != 0 {
                 return Some((a, b));
@@ -133,4 +136,15 @@ fn sum_digits(n: usize) -> isize {
     }
 
     sum
+}
+
+fn get_sums(max: usize) -> Vec<isize> {
+    let range_max = 2 * (max + 1);
+    let mut output = Vec::with_capacity(range_max);
+
+    for i in 0..range_max {
+        output.push(sum_digits(i));
+    }
+
+    output
 }

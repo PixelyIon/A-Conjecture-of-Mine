@@ -5,7 +5,7 @@
 
 from time import time
 
-def sum_digits(n):
+def sum_digits(n: int) -> int:
     parc = abs(n)
     sum_d = 0
 
@@ -15,15 +15,25 @@ def sum_digits(n):
 
     return sum_d
 
-def get_counterexmpl(n):
-    for a in range(n + 1):
-        for b in range(a, n + 1):
-            diff = sum_digits(a + b) - (sum_digits(a) + sum_digits(b))
+def get_counterexmpl(max: int) -> (int, int):
+    sums = get_sums(max)
+
+    for a in range(max + 1):
+        for b in range(a, max + 1):
+            diff = sums[a + b] - sums[a] - sums[b]
 
             if not diff % 9 == 0:
                 return (a, b)
     
-    return None  
+    return None
+
+def get_sums(max: int) -> list:
+    output = []
+
+    for i in range(2 * (max + 1) + 1):
+        output.append(sum_digits(i))
+
+    return output
 
 
 print("\nThis script is a simple test for the following conjecture:\n")
@@ -33,18 +43,18 @@ max_str = input("What value would you like to test the conjecture for? ")
 print("\nLOADING. . .")
 
 try:
-    maximum = int(max_str)
-    if maximum < 0:
+    max = int(max_str)
+    if max < 0:
         raise ValueError
 
     start = time()
-    counterexmpl = get_counterexmpl(maximum)
+    counterexmpl = get_counterexmpl(max)
     elepsed = time() - start
 
     print("LOADED. . . in {:.0f}ms\n".format(elepsed * 10**3))
 
     if counterexmpl == None:
-        print("The conjecture is proved for all natural numbers smaller or equals to {}!".format(maximum))
+        print("The conjecture is proved for all natural numbers smaller or equals to {}!".format(max))
     else:
         (a, b) = counterexmpl
         print("The conjecture is disproved! Here's a counterexample: ({}, {})".format(a, b))
