@@ -11,7 +11,8 @@ The conjecture was [proved by exhaustion](https://en.wikipedia.org/wiki/Proof_by
 
 |Language      |Milliseconds|
 |--------------|------------|
-|**Rust**      |80          |
+|**Rust**      |108         |
+|**Go**        |112         |
 |**C**         |271         | 
 |**JavaScript**|656         |
 |**Ruby**      |9850        |

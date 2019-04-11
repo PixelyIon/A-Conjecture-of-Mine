@@ -9,8 +9,9 @@ class Integer
         sum = 0
 
         while part > 0
-            sum += part % 10
-            part /= 10
+            d, r = part.divmod(10)
+            sum += r
+            part = d
         end
 
         return sum

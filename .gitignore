@@ -1,5 +1,6 @@
 .vscode
 *.exe
+*.img
+*.IMG
 Statistics
 Latex
-X86

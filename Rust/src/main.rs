@@ -7,7 +7,7 @@ extern crate crossterm;
 extern crate num_cpus;
 extern crate rand;
 
-use std::{env, thread, time::Instant, sync::mpsc, sync::mpsc::{Sender, Receiver}};
+use std::{env, thread, time::Instant, sync::{Arc, mpsc::{self, Sender, Receiver}}};
 use crossterm::{terminal, input};
 use rand::prelude::*;
 
@@ -52,7 +52,7 @@ fn main() {
 }
 
 fn get_countrexpl(max: usize, n_threads: usize) -> Option<(usize, usize)> {
-    let sums = get_sums(max);
+    let sums = Arc::new(get_sums(max));
 
     if max / n_threads > 0 && n_threads > 1 {
 
@@ -92,7 +92,7 @@ fn get_countrexpl(max: usize, n_threads: usize) -> Option<(usize, usize)> {
             let thread_sums = sums.clone();
 
             let child = thread::spawn(move || {
-                thread_countr_sd.send(get_range_countrexpl(thread_range, max, &thread_sums))
+                thread_countr_sd.send(get_range_countrexpl(thread_range, thread_sums, max))
                     .expect(&format!("Thread n°{} was unable to sent a message trought the channel", i));
             });
             
@@ -108,11 +108,11 @@ fn get_countrexpl(max: usize, n_threads: usize) -> Option<(usize, usize)> {
 
         None
     } else {
-        get_range_countrexpl((0..max).collect(), max, &sums)
+        get_range_countrexpl((0..max).collect(), sums, max)
     }
 }
 
-fn get_range_countrexpl(range: Vec<usize>, max: usize, sums: &Vec<isize>) -> Option<(usize, usize)> {
+fn get_range_countrexpl(range: Vec<usize>, sums: Arc<Vec<isize>>, max: usize) -> Option<(usize, usize)> {
     for a in range {
         for b in a..max {
             let difference = sums[a + b] - sums[a] - sums[b];
@@ -131,11 +131,11 @@ fn sum_digits(n: usize) -> isize {
     let mut part = n;
 
     while part != 0 {
-        sum += (part % 10) as isize;
+        sum += part % 10;
         part /= 10;
     }
 
-    sum
+    sum as isize
 }
 
 fn get_sums(max: usize) -> Vec<isize> {
