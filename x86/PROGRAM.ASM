@@ -1,17 +1,46 @@
 .model tiny
 
+.data
+        intro db "Hey", 0dh, 0ah, "$"
+        proof db "The conjecture is proved for all natural numbers smaller or equals to", 0dh, 0ah, "10000!", 0dh, 0ah, "$"
+
 .code
 org 100h
 
 start:
-        mov ax, 32 ; 1st
-        mov bx, 16 ; 2nd
+        mov dx, offset intro
+        mov ah, 9h
+        int 21h
+          
+        mov ax, 0
+        call iter
+
+iter:
+        call test_num
+
+        add ax, 1
+        cmp ax, 10000
+        jle short iter
+      
+        call proved
+
+test_num:
+        mov bx, 0
+test_loop:
+        push bx
+        push ax
 
         call test_pair
-        
-        ; Quit the program
-        mov ah, 4ch
-        int 21h
+        cmp dx, 0
+        jne short disproved
+
+        pop ax
+        pop bx
+        add bx, 1
+
+        cmp bx, ax
+        jle short test_loop
+        ret        
 
 test_pair:
         ; Calculate the 1st + 2nd into cx
@@ -44,7 +73,6 @@ test_pair:
         mov dx, 0 ; Clear the register where the rest will be stored
         div cx
 
-        cmp dx, 0
         ret
 
 sum_digits:
@@ -61,4 +89,22 @@ sum_loop:
         jg short sum_loop
         ret
 
+proved:
+        ; Print the message to the screen
+        mov dx, offset proof
+        mov ah, 9h
+        int 21h
+
+        call quit
+        ret
+disproved:
+        mov dx, offset proof
+        mov ah, 9h
+        int 21h
+
+        call quit
+        ret        
+quit:
+        mov ah, 4ch
+        int 21h
 end start
