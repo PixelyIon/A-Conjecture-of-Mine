@@ -18,7 +18,7 @@ import (
 func main() {
 	fmt.Println("\nThis program is a simple test for the following conjecture:")
 	fmt.Println("\nLet S: N -> N be the sum of the digits of a positive integer.")
-	fmt.Println("For all A and B in N, S(A + B) = S(A) + S(B) - 9k, where k is an interger.")
+	fmt.Println("For all A and B in N, S(A + B) = S(A) + S(B) - 9k, where k is an integer.")
 	fmt.Print("\nWhat value would you like to test the conjecture for? ")
 
 	reader := bufio.NewReader(os.Stdin)
