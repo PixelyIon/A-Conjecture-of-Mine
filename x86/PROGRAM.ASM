@@ -3,10 +3,11 @@
 .stack 100h
 
 .data
-        buffer db 20 DUP(30h)
-        invalid db " is not a natural number!", 0dh, 0ah, 0dh, 0ah, "$"
+        buffer db 22 DUP(0)
+        invalid db "' is not a natural number!", 0dh, 0ah, 0dh, 0ah, "$"
 
-        proof db "The conjecture is proved for all natural numbers smaller or equals to 10000!", 0dh, 0ah, "$"
+        proof db 0dh, 0ah, "The conjecture is proved for all natural numbers smaller or equals to $"
+        counter db 0dh, 0ah, "The conjecture is disproved! Here's a counterexample: ($"
 
         intro1 db 0dh, 0ah, "This program is a simple test for the following conjecture:", 0dh, 0ah, "$"
         intro2 db 0dh, 0ah, "Let S: N -> N be the sum of the digits of a positive integer.", 0dh, 0ah, "$"
@@ -42,16 +43,24 @@ read_uint:
         ; Load the user input into the buffer
         mov ax, cs
         mov ds, ax
-        mov dx, 0
         mov buffer[0], 20 ; Configure the buffer length
-        mov dl, offset buffer
+        mov dx, offset buffer
         mov ah, 0ah
         int 21h
 
-        mov ax, 0 ; Initialize the register were the result will be stored
-        mov cx, 2 ; Initialize a counter
+        ; Print '\n'
+        mov ah, 2h
+        mov dx, 0dh
+        int 21h
+        mov dx, 0ah
+        int 21h
+
+        ; Move si to the to adress of the first character in the buffer
         mov si, offset buffer
-        add si, 3
+        add si, 2
+
+        mov ax, 0 ; Initialize the register where the result will be stored
+        mov cx, 1 ; Initialize a counter
 
 read_loop:
         mov bx, 0 ; Clear bx
@@ -76,35 +85,34 @@ read_loop:
         add ax, bx
 
         ; Jump if the counter is still smaller than the buffer length
-        cmp cl, buffer[0]
-        jb short read_loop
         cmp cl, buffer[1]
-        jb short read_loop                
+        jbe short read_loop
         ret
 
 invalid_input:
-        mov ah, 2
+        mov ah, 2h
 
         ; Print '\''
+        mov dx, 0ah
+        int 21
         mov dx, 27h
-        int 21h
+        int 21
 
         mov si, offset buffer
-        mov cx, 0
+        add si, 2
+        mov cx, 1
 
 invalid_input_loop:
-        mov dl, [si]
+        mov dx, [si]
         int 21h
+
         inc cx
         inc si
 
-        cmp cl, 6
+        cmp cl, buffer[1]
         jbe short invalid_input_loop
 
 invalid_input_end:
-        ; Print '\''
-        mov dx, 27h
-        int 21h
 
         ; Print the rest of the message
         mov ah, 9h
@@ -114,19 +122,22 @@ invalid_input_end:
         call quit
         ret
 
-; Iterate ax from 0 to 10000
+; Iterate ax from 0 to maximum value, stored in bx
 iter:
+        push bx
         call test_num
+        pop bx
 
         inc ax
-        cmp ax, 10000
+        cmp ax, bx
         jbe short iter
-      
+
         call proved
 
 ; Iterate bx from 0 to ax
 test_num:
         mov bx, 0
+
 test_loop:
         push bx
         push ax
@@ -147,7 +158,7 @@ test_pair:
         ; Calculate the 1st + 2nd into cx
         mov cx, ax
         add cx, bx
-        
+
         push cx ; Push 1st + 2nd to the stack
         push bx ; Push 2nd to the stack
 
@@ -156,7 +167,7 @@ test_pair:
         pop ax ; Store the value of 2nd in ax
         push bx ; Push S(1st) to the stack
         call sum_digits ; Calculate S(2nd) into bx
-        
+
         pop ax ; Store S(1st) in ax 
         add ax, bx ; Store S(1st) + S(2nd) in ax
         pop bx ; Store 1st + 2nd in bx
@@ -168,7 +179,7 @@ test_pair:
         pop ax ; Store S(1st) + S(2nd) in ax
         sub bx, ax ; Calculate S(1st + 2nd) - (S(1st) + S(2nd)) into bx
 
- 
+
         mov ax, bx ; Store S(1st + 2nd) - (S(1st) + S(2nd)) in ax
         mov cx, 9 ; Set the devident to 9
         mov dx, 0 ; Clear the register where the rest will be stored
@@ -178,7 +189,7 @@ test_pair:
 
 sum_digits:
         mov cx, 10 ; Store the devident in cx
-        mov bx, 0 ; Clear the register where the result will be stored        
+        mov bx, 0 ; Clear the register where the result will be stored
 sum_loop:
         mov dx, 0 ; Clear the rest of the division
 
@@ -195,16 +206,78 @@ proved:
         mov dx, offset proof
         int 21h
 
+        mov ax, bx
+        call print_uint
+
+        ; Print '!\n'
+        mov ah, 2h
+        mov dx, 21h
+        int 21h
+        mov dx, 0dh
+        int 21h
+        mov dx, 0ah
+        int 21h
+
         call quit
         ret
 
 disproved:
+        push bx
+        push ax
+
         mov ah, 9h
-        mov dx, offset proof
+        mov dx, offset counter
+        int 21h
+
+        pop ax
+        call print_uint
+
+        ; Print ', '
+        mov ah, 2h
+        mov dx, 2ch
+        int 21h
+        mov dx, 20h
+        int 21h
+
+        pop ax
+        call print_uint
+
+        ; Print ')\n'
+        mov ah, 2h
+        mov dx, 29h
+        int 21h
+        mov dx, 0ah
         int 21h
 
         call quit
-        ret        
+        ret
+
+print_uint:
+        mov bx, 10
+        mov cx, 0
+
+print_uint_collect:
+        mov dx, 0
+        div bx
+        add dx, 30h
+
+        push dx
+        inc cx
+
+        cmp ax, 0
+        ja short print_uint_collect
+
+        mov ah, 2h
+
+print_uint_loop:
+        pop dx
+        int 21h
+        dec cx
+
+        cmp cx, 0
+        ja short print_uint_loop
+        ret
+
 quit:
         int 20h
 end start
