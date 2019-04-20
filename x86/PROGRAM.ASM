@@ -127,7 +127,7 @@ invalid_input_end:
         call quit
         ret
 
-; Iterate ax from 0 to maximum value, stored in bx
+; Iterate a from 0 to max
 iter:
         call test_num
 
@@ -137,11 +137,10 @@ iter:
 
         call proved
 
-        ; Iterate bx from a to max
+; Iterate b from a to max
 test_num:
         mov ax, a
         mov b, ax
-        ;mov b, 0
 
 test_loop:
         call test_pair
@@ -150,7 +149,6 @@ test_loop:
 
         inc b
         mov ax, b
-        ;cmp ax, a
         cmp ax, max
         jbe short test_loop
         ret        
@@ -160,41 +158,23 @@ test_pair:
         mov ax, a
         add ax, b
         
-        call sum_digits ; calculate S(a+b)
+        call sum_digits ; Calculate S(a + b)
         mov sumsAB, bx
-        
-        ;push ax ; Push a + b to the stack
 
-        mov ax, a
+        mov ax, a ; Store the value of a in ax
         call sum_digits ; Calculate S(a) into bx
         mov sumsA, bx
 
         mov ax, b ; Store the value of b in ax
-        ;push bx ; Push S(a) to the stack
         call sum_digits ; Calculate S(b) into bx
         mov sumsB, bx
-
-        ;pop ax ; Store S(a) in ax 
-        ;add ax, bx ; Store S(a) + S(b) in ax
-        ;pop bx ; Store a + b in bx
-        ;push ax ; Push S(a) + S(b) to the stack
-        ;mov ax, bx ; Store a + b in ax    
-        
-        ;call sum_digits ; Calculate S(a + b) into bx
-
-        ;pop ax ; Store S(a) + S(b) in ax
         
         
-        ; get diff in ax - calculate S(a+b) - S(a) - S(b)
+        ; Calculate S(a + b) - S(a) - S(b) in ax
         mov ax, sumsAB
         sub ax, sumsA
         sub ax, sumsB
         
-        ; are you sure you want to add (S(a) + S(b)) ??
-        ;sub bx, ax ; Calculate S(a + b) - (S(a) + S(b)) into bx
-
-
-        ;mov ax, bx ; Store S(a + b) - (S(a) + S(b)) in ax
         mov cx, 9 ; Set the devident to 9
         mov dx, 0 ; Clear the register where the rest will be stored
         div cx
