@@ -1,18 +1,22 @@
 .model tiny
 
-.stack 100h
+.stack 1000h
 
 .data
-        buffer db 22 DUP(0)
+        buffer  db 22 DUP(0)
         invalid db "' is not a natural number!", 0dh, 0ah, 0dh, 0ah, "$"
 
-        proof db 0dh, 0ah, "The conjecture is proved for all natural numbers smaller or equals to $"
+        max     dw 0
+        a       dw 0
+        b       dw 0
+
+        proof   db 0dh, 0ah, "The conjecture is proved for all natural numbers smaller or equals to $"
         counter db 0dh, 0ah, "The conjecture is disproved! Here's a counterexample: ($"
 
-        intro1 db 0dh, 0ah, "This program is a simple test for the following conjecture:", 0dh, 0ah, "$"
-        intro2 db 0dh, 0ah, "Let S: N -> N be the sum of the digits of a positive integer.", 0dh, 0ah, "$"
-        intro3 db "For all A and B in N, S(A + B) = S(A) + S(B) - 9k, where k is an integer.", 0dh, 0ah, "$"
-        intro4 db 0dh, 0ah, "What value would you like to test the conjecture for? $"
+        intro1  db 0dh, 0ah, "This program is a simple test for the following conjecture:", 0dh, 0ah, "$"
+        intro2  db 0dh, 0ah, "Let S: N -> N be the sum of the digits of a positive integer.", 0dh, 0ah, "$"
+        intro3  db "For all A and B in N, S(A + B) = S(A) + S(B) - 9k, where k is an integer.", 0dh, 0ah, "$"
+        intro4  db 0dh, 0ah, "What value would you like to test the conjecture for? $"
 
 .code
         org 100h
@@ -33,10 +37,7 @@ start:
         int 21h
 
         ; Retrieve user input
-        call read_uint
-        mov bx, ax
-          
-        mov ax, 0
+        call read_uint        
         call iter
 
 read_uint:
@@ -87,6 +88,8 @@ read_loop:
         ; Jump if the counter is still smaller than the buffer length
         cmp cl, buffer[1]
         jbe short read_loop
+
+        mov [max], ax
         ret
 
 invalid_input:
@@ -113,7 +116,6 @@ invalid_input_loop:
         jbe short invalid_input_loop
 
 invalid_input_end:
-
         ; Print the rest of the message
         mov ah, 9h
         mov dx, offset invalid
@@ -124,63 +126,58 @@ invalid_input_end:
 
 ; Iterate ax from 0 to maximum value, stored in bx
 iter:
-        push bx
         call test_num
-        pop bx
 
-        inc ax
-        cmp ax, bx
+        inc [a]
+        mov ax, [a]
+        cmp ax, [max]
         jbe short iter
 
         call proved
 
 ; Iterate bx from 0 to ax
 test_num:
-        mov bx, 0
+        mov [b], 0
 
 test_loop:
-        push bx
-        push ax
-
         call test_pair
         cmp dx, 0
         jne short disproved
 
-        pop ax
-        pop bx
-        inc bx
+        inc [b]
 
-        cmp bx, ax
+        mov ax, [b]
+        cmp ax, [a]
         jbe short test_loop
         ret        
 
 test_pair:
-        ; Calculate the 1st + 2nd into cx
-        mov cx, ax
-        add cx, bx
+        ; Calculate the a + b into cx
+        mov ax, [a]
+        add ax, [b]
 
-        push cx ; Push 1st + 2nd to the stack
-        push bx ; Push 2nd to the stack
+        push ax ; Push a + b to the stack
 
-        call sum_digits ; Calculate S(1st) into bx
+        mov ax, [a]
+        call sum_digits ; Calculate S(a) into bx
 
-        pop ax ; Store the value of 2nd in ax
-        push bx ; Push S(1st) to the stack
-        call sum_digits ; Calculate S(2nd) into bx
+        mov ax, [b] ; Store the value of b in ax
+        push bx ; Push S(a) to the stack
+        call sum_digits ; Calculate S(b) into bx
 
-        pop ax ; Store S(1st) in ax 
-        add ax, bx ; Store S(1st) + S(2nd) in ax
-        pop bx ; Store 1st + 2nd in bx
-        push ax ; Push S(1st) + S(2nd) to the stack
+        pop ax ; Store S(a) in ax 
+        add ax, bx ; Store S(a) + S(b) in ax
+        pop bx ; Store a + b in bx
+        push ax ; Push S(a) + S(b) to the stack
 
-        mov ax, bx ; Store 1st + 2nd in ax    
-        call sum_digits ; Calculate S(1st + 2nd) into bx
+        mov ax, bx ; Store a + b in ax    
+        call sum_digits ; Calculate S(a + b) into bx
 
-        pop ax ; Store S(1st) + S(2nd) in ax
-        sub bx, ax ; Calculate S(1st + 2nd) - (S(1st) + S(2nd)) into bx
+        pop ax ; Store S(a) + S(b) in ax
+        sub bx, ax ; Calculate S(a + b) - (S(a) + S(b)) into bx
 
 
-        mov ax, bx ; Store S(1st + 2nd) - (S(1st) + S(2nd)) in ax
+        mov ax, bx ; Store S(a + b) - (S(a) + S(b)) in ax
         mov cx, 9 ; Set the devident to 9
         mov dx, 0 ; Clear the register where the rest will be stored
         div cx
@@ -279,5 +276,6 @@ print_uint_loop:
         ret
 
 quit:
-        int 20h
+        mov ax, 4c00h
+        int 21h
 end start
