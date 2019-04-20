@@ -9,7 +9,10 @@
         max     dw 0
         a       dw 0
         b       dw 0
-
+        sumsAB  dw 0
+        sumsA   dw 0
+        sumsB   dw 0
+        
         proof   db 0dh, 0ah, "The conjecture is proved for all natural numbers smaller or equals to $"
         counter db 0dh, 0ah, "The conjecture is disproved! Here's a counterexample: ($"
 
@@ -89,7 +92,7 @@ read_loop:
         cmp cl, buffer[1]
         jbe short read_loop
 
-        mov [max], ax
+        mov max, ax
         ret
 
 invalid_input:
@@ -124,60 +127,54 @@ invalid_input_end:
         call quit
         ret
 
-; Iterate ax from 0 to maximum value, stored in bx
+; Iterate a from 0 to max
 iter:
         call test_num
 
-        inc [a]
-        mov ax, [a]
-        cmp ax, [max]
+        inc a
+        cmp ax, max
         jbe short iter
 
         call proved
 
-; Iterate bx from 0 to ax
+; Iterate b from a to max
 test_num:
-        mov [b], 0
+        mov ax, a
+        mov b, ax
 
 test_loop:
         call test_pair
         cmp dx, 0
         jne short disproved
 
-        inc [b]
-
-        mov ax, [b]
-        cmp ax, [a]
+        inc b
+        mov ax, b
+        cmp ax, max
         jbe short test_loop
         ret        
 
 test_pair:
         ; Calculate the a + b into cx
-        mov ax, [a]
-        add ax, [b]
+        mov ax, a
+        add ax, b
+        
+        call sum_digits ; Calculate S(a + b)
+        mov sumsAB, bx
 
-        push ax ; Push a + b to the stack
-
-        mov ax, [a]
+        mov ax, a ; Store the value of a in ax
         call sum_digits ; Calculate S(a) into bx
+        mov sumsA, bx
 
-        mov ax, [b] ; Store the value of b in ax
-        push bx ; Push S(a) to the stack
+        mov ax, b ; Store the value of b in ax
         call sum_digits ; Calculate S(b) into bx
-
-        pop ax ; Store S(a) in ax 
-        add ax, bx ; Store S(a) + S(b) in ax
-        pop bx ; Store a + b in bx
-        push ax ; Push S(a) + S(b) to the stack
-
-        mov ax, bx ; Store a + b in ax    
-        call sum_digits ; Calculate S(a + b) into bx
-
-        pop ax ; Store S(a) + S(b) in ax
-        sub bx, ax ; Calculate S(a + b) - (S(a) + S(b)) into bx
-
-
-        mov ax, bx ; Store S(a + b) - (S(a) + S(b)) in ax
+        mov sumsB, bx
+        
+        
+        ; Calculate S(a + b) - S(a) - S(b) in ax
+        mov ax, sumsAB
+        sub ax, sumsA
+        sub ax, sumsB
+        
         mov cx, 9 ; Set the devident to 9
         mov dx, 0 ; Clear the register where the rest will be stored
         div cx
@@ -275,6 +272,22 @@ print_uint_loop:
         ja short print_uint_loop
         ret
 
+        ; print decimal value in ax, and a '.' to separate them.
+        ; for debug
+print_dot_dec:
+        push bx
+        push cx
+        push dx
+        push ax
+        call print_uint
+        mov dx, '.'
+        int 21h
+        pop ax    
+        pop dx
+        pop cx
+        pop bx
+        ret
+        
 quit:
         mov ax, 4c00h
         int 21h
