@@ -9,9 +9,9 @@
         max     dw 0
         a       dw 0
         b       dw 0
-        sumsAB  dw 0
-        sumsA   dw 0
-        sumsB   dw 0
+        sumAB   dw 0
+        sumA    dw 0
+        sumB    dw 0
         
         proof   db 0dh, 0ah, "The conjecture is proved for all natural numbers smaller or equals to $"
         counter db 0dh, 0ah, "The conjecture is disproved! Here's a counterexample: ($"
@@ -159,21 +159,21 @@ test_pair:
         add ax, b
         
         call sum_digits ; Calculate S(a + b)
-        mov sumsAB, bx
+        mov sumAB, bx
 
         mov ax, a ; Store the value of a in ax
         call sum_digits ; Calculate S(a) into bx
-        mov sumsA, bx
+        mov sumA, bx
 
         mov ax, b ; Store the value of b in ax
         call sum_digits ; Calculate S(b) into bx
-        mov sumsB, bx
+        mov sumB, bx
         
         
         ; Calculate S(a + b) - S(a) - S(b) in ax
-        mov ax, sumsAB
-        sub ax, sumsA
-        sub ax, sumsB
+        mov ax, sumAB
+        sub ax, sumA
+        sub ax, sumB
         
         mov cx, 9 ; Set the devident to 9
         mov dx, 0 ; Clear the register where the rest will be stored
@@ -200,14 +200,12 @@ proved:
         mov dx, offset proof
         int 21h
 
-        mov ax, bx
+        mov ax, max
         call print_uint
 
         ; Print '!\n'
         mov ah, 2h
-        mov dx, 21h
-        int 21h
-        mov dx, 0dh
+        mov dx, '!'
         int 21h
         mov dx, 0ah
         int 21h
@@ -228,9 +226,9 @@ disproved:
 
         ; Print ', '
         mov ah, 2h
-        mov dx, 2ch
+        mov dx, ','
         int 21h
-        mov dx, 20h
+        mov dx, ' '
         int 21h
 
         pop ax
@@ -238,7 +236,7 @@ disproved:
 
         ; Print ')\n'
         mov ah, 2h
-        mov dx, 29h
+        mov dx, ')'
         int 21h
         mov dx, 0ah
         int 21h
@@ -272,8 +270,8 @@ print_uint_loop:
         ja short print_uint_loop
         ret
 
-        ; print decimal value in ax, and a '.' to separate them.
-        ; for debug
+; Print decimal value in ax, and a '.' to separate them.
+; @Debug
 print_dot_dec:
         push bx
         push cx
