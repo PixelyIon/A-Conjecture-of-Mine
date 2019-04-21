@@ -3,7 +3,7 @@
 .stack 1000h
 
 .data
-        buffer  db 22 DUP(0)
+        input   db 22 DUP(0)
         invalid db "' is not a natural number!", 0dh, 0ah, 0dh, 0ah, "$"
 
         max     dw 0
@@ -44,11 +44,11 @@ start:
         call iter
 
 read_uint:
-        ; Load the user input into the buffer
+        ; Load the user input into the input
         mov ax, cs
         mov ds, ax
-        mov buffer[0], 20 ; Configure the buffer length
-        mov dx, offset buffer
+        mov input[0], 20 ; Configure the input length
+        mov dx, offset input
         mov ah, 0ah
         int 21h
 
@@ -59,8 +59,8 @@ read_uint:
         mov dx, 0ah
         int 21h
 
-        ; Move si to the to adress of the first character in the buffer
-        mov si, offset buffer
+        ; Move si to the to adress of the first character in the input
+        mov si, offset input
         add si, 2
 
         mov ax, 0 ; Initialize the register where the result will be stored
@@ -88,8 +88,8 @@ read_loop:
         pop cx
         add ax, bx
 
-        ; Jump if the counter is still smaller than the buffer length
-        cmp cl, buffer[1]
+        ; Jump if the counter is still smaller than the input length
+        cmp cl, input[1]
         jbe short read_loop
 
         mov max, ax
@@ -104,7 +104,7 @@ invalid_input:
         mov dx, 27h
         int 21
 
-        mov si, offset buffer
+        mov si, offset input
         add si, 2
         mov cx, 1
 
@@ -115,7 +115,7 @@ invalid_input_loop:
         inc cx
         inc si
 
-        cmp cl, buffer[1]
+        cmp cl, input[1]
         jbe short invalid_input_loop
 
 invalid_input_end:

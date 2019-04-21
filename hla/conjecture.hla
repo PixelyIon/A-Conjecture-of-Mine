@@ -1,0 +1,116 @@
+program conjecture;
+
+	#includeonce( "stdlib.hhf" )
+	
+	?@nodisplay := true;
+	?@noalignstack := true;
+
+// This program is a simple test for the following conjecture:
+
+// Let S: N -> N be the sum of the digits of a positive integer.
+// For all A and B in N, S(A + B) = S(A) + S(B) - 9k, where k is an interger.
+
+// data segments
+storage
+	max			:uns32;
+	sumAB		:uns32;
+	sumA		:uns32;
+	sumB		:uns32;
+	
+static
+	err			:boolean := false;
+	
+
+// input eax = number to sum
+// returns sum in ebx
+procedure sum_digits;
+
+	// don't build a stack frame for this procedure
+	@nodisplay; @noframe;
+
+begin sum_digits;
+	
+	mov( 10, ecx );
+	xor( ebx, ebx );
+	while( eax ) do
+		xor( edx, edx );
+		div( ecx );
+		add( edx, ebx );
+	endwhile;
+	ret;
+
+end sum_digits;
+
+
+
+begin conjecture;
+
+	// read an unsigned integer from the user
+	forever
+		try
+			stdout.put ("enter an unsigned integer :>" );
+			stdin.getu32();
+			mov( eax, max );
+			break;
+		anyexception;
+			stdout.newln();
+			continue;
+		endtry;
+	endfor;
+	
+	
+	stdout.put ("Loading ..." nl );
+	
+	for( xor(esi, esi); esi <= max; inc( esi ) ) do
+		
+		// outer loop esi = 0 to max iterations
+		
+		for( mov(esi, edi); edi <= max; inc( edi ) ) do
+			
+			// inner loop. edi = esi to max iterations
+			
+			// get S(a+b)
+			mov( esi, eax );
+			add( edi, eax );
+			call sum_digits;
+			mov( ebx, sumAB );
+			
+			// get S(a)
+			mov( esi, eax );
+			call sum_digits;
+			mov( ebx, sumA );
+			
+			// get S(b)
+			mov( edi, eax );
+			call sum_digits;
+			mov( ebx, sumB );
+			
+			// get S(a+b) - S(a) - S(b)
+			mov( sumAB, eax );
+			sub( sumA, eax );
+			sub( sumB, eax );
+			
+			// sign extend into edx
+			cdq();
+			mov( 9, ecx );
+			idiv( ecx );	// signed division of edx:eax
+			test( edx, edx ); // is remainder zero?
+			if( @nz ) then
+				// if remainder is not zero, the conjecture is false
+				stdout.put ("Conjecture is disproved, here is the counter example :", (type uns32 eax), nl );
+				mov( true, err );
+				break;
+			endif;
+		endfor;
+		
+		breakif( err );
+		
+	endfor;
+	
+	// if we get here, we looped through all the values and the
+	// conjecture is proved.
+	if( !err ) then
+		stdout.put ("The conjecture is proved for all natural numbers smaller or equals to ", max, "!", nl );
+	endif;
+
+end conjecture;
